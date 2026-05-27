@@ -111,8 +111,8 @@ EMAIL_HOST_PASSWORD = 'your_app_password'
 DEFAULT_FROM_EMAIL = 'TravelX Pro <your_email@gmail.com>'
 
 # Razorpay Configuration
-RAZORPAY_KEY_ID = 'rzp_test_SrsS8vy8a7up6R'
-RAZORPAY_KEY_SECRET = 'IA1vduvKqNyPXmsewEilSSmt'
+RAZORPAY_KEY_ID = '#'
+RAZORPAY_KEY_SECRET = '#'
 
 # Google Maps API Key
 GOOGLE_MAPS_API_KEY = 'your_google_maps_api_key'
