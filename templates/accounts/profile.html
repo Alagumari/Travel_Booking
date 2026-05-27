@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}My Profile - TravelX Pro{% endblock %}
+{% block content %}
+<div style="padding:3rem 0;min-height:80vh;">
+  <div class="container" style="max-width:700px;">
+    <h2 style="font-family:var(--font-display);font-size:2rem;font-weight:900;color:#fff;margin-bottom:0.3rem;">
+      <i class="bi bi-person-circle me-2" style="color:var(--tx-accent);"></i>My Profile
+    </h2>
+    <p style="color:rgba(255,255,255,0.4);margin-bottom:2rem;">Update your personal information</p>
+
+    <div class="glass-panel p-4">
+      <!-- Avatar -->
+      <div style="text-align:center;margin-bottom:2rem;">
+        <div style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--tx-accent),var(--tx-gold));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:2rem;color:var(--tx-primary);margin:0 auto 0.8rem;">
+          {% if profile.profile_picture %}
+          <img src="{{ profile.profile_picture.url }}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;">
+          {% else %}
+          {{ user.first_name|first|upper|default:user.username|first|upper }}
+          {% endif %}
+        </div>
+        <div style="font-weight:700;color:#fff;">{{ user.get_full_name|default:user.username }}</div>
+        <div style="font-size:0.82rem;color:rgba(255,255,255,0.4);">{{ user.email }}</div>
+      </div>
+
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-label-tx">First Name</label>
+            <input type="text" name="first_name" class="form-control form-control-tx" value="{{ form.initial.first_name|default:'' }}" placeholder="First Name">
+          </div>
+          <div class="col-6">
+            <label class="form-label-tx">Last Name</label>
+            <input type="text" name="last_name" class="form-control form-control-tx" value="{{ form.initial.last_name|default:'' }}" placeholder="Last Name">
+          </div>
+          <div class="col-12">
+            <label class="form-label-tx">Email</label>
+            <input type="email" name="email" class="form-control form-control-tx" value="{{ form.initial.email|default:'' }}" placeholder="Email Address">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-tx">Phone</label>
+            <input type="tel" name="phone" class="form-control form-control-tx" value="{{ profile.phone }}" placeholder="+91 XXXXX XXXXX">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-tx">Date of Birth</label>
+            <input type="date" name="date_of_birth" class="form-control form-control-tx" value="{{ profile.date_of_birth|date:'Y-m-d'|default:'' }}">
+          </div>
+          <div class="col-12">
+            <label class="form-label-tx">Address</label>
+            <input type="text" name="address" class="form-control form-control-tx" value="{{ profile.address }}" placeholder="Your address">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-tx">City</label>
+            <input type="text" name="city" class="form-control form-control-tx" value="{{ profile.city }}" placeholder="City">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-tx">Country</label>
+            <input type="text" name="country" class="form-control form-control-tx" value="{{ profile.country }}" placeholder="Country">
+          </div>
+          <div class="col-12">
+            <label class="form-label-tx">Bio</label>
+            <textarea name="bio" class="form-control form-control-tx" rows="3" placeholder="Tell us about yourself...">{{ profile.bio }}</textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label-tx">Profile Picture</label>
+            <input type="file" name="profile_picture" accept="image/*" class="form-control form-control-tx" style="padding:0.6rem;">
+          </div>
+        </div>
+        <div class="d-flex gap-3 mt-4">
+          <button type="submit" class="btn-tx-primary btn" style="padding:0.85rem 2rem;">
+            <i class="bi bi-check2 me-2"></i>Save Changes
+          </button>
+          <a href="{% url 'change_password' %}" class="btn-tx-outline btn" style="padding:0.85rem 1.5rem;">
+            <i class="bi bi-shield-lock me-2"></i>Change Password
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

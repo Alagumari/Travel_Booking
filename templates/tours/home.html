@@ -1,0 +1,933 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block title %}TravelX Pro - Discover the World{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ===== HERO ===== */
+.hero {
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #050e1d 0%, #0a1628 50%, #0d1f3c 100%);
+}
+
+.hero-bg-mesh {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 70% 40%, rgba(0,180,216,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 20% 70%, rgba(232,160,32,0.1) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 90% 10%, rgba(123,45,139,0.08) 0%, transparent 50%);
+}
+
+.hero-particles {
+  position: absolute; inset: 0;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  animation: particle-float linear infinite;
+  opacity: 0;
+}
+
+@keyframes particle-float {
+  0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 0.5; }
+  100% { transform: translateY(-100px) rotate(720deg); opacity: 0; }
+}
+
+.hero-content { position: relative; z-index: 5; }
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(232,160,32,0.1);
+  border: 1px solid rgba(232,160,32,0.25);
+  border-radius: 50px;
+  padding: 0.4rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--tx-gold);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 900;
+  line-height: 1.0;
+  color: #fff;
+  margin-bottom: 1.5rem;
+}
+
+.hero-title .line-accent {
+  background: linear-gradient(135deg, var(--tx-accent) 0%, var(--tx-gold) 40%, var(--tx-teal) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-desc {
+  color: rgba(255,255,255,0.55);
+  font-size: 1.1rem;
+  line-height: 1.8;
+  max-width: 520px;
+  margin-bottom: 2.5rem;
+}
+
+/* Search Bar */
+.hero-search {
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 1.2rem 1.2rem;
+  max-width: 680px;
+}
+
+.search-field {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  color: white;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.search-field:focus {
+  outline: none;
+  border-color: var(--tx-accent);
+  background: rgba(255,255,255,0.1);
+}
+
+.search-field::placeholder { color: rgba(255,255,255,0.3); }
+
+.hero-stats {
+  display: flex;
+  gap: 2rem;
+  margin-top: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.hero-stat-num {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--tx-accent);
+  line-height: 1;
+}
+
+.hero-stat-label {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.45);
+  margin-top: 2px;
+}
+
+/* Hero Visual */
+.hero-visual {
+  position: relative;
+  z-index: 5;
+}
+
+.hero-card-float {
+  background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 1.2rem 1.5rem;
+  position: absolute;
+  animation: float 5s ease-in-out infinite;
+}
+
+.hero-main-img {
+  width: 100%;
+  border-radius: 30px;
+  height: 550px;
+  object-fit: cover;
+  filter: brightness(0.85);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* ===== CATEGORIES ===== */
+.category-pill {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.2rem 1.5rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: rgba(255,255,255,0.7);
+  min-width: 100px;
+  text-align: center;
+}
+
+.category-pill:hover, .category-pill.active {
+  background: rgba(232,160,32,0.1);
+  border-color: rgba(232,160,32,0.3);
+  color: var(--tx-gold);
+  transform: translateY(-4px);
+}
+
+.category-icon-wrap {
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  background: rgba(255,255,255,0.06);
+}
+
+/* ===== PACKAGE CARD ===== */
+.pkg-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  height: 100%;
+}
+
+.pkg-card:hover {
+  transform: translateY(-10px);
+  border-color: rgba(232,160,32,0.25);
+  box-shadow: 0 30px 70px rgba(0,0,0,0.5);
+}
+
+.pkg-img-wrap {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+}
+
+.pkg-img-wrap img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.pkg-card:hover .pkg-img-wrap img { transform: scale(1.08); }
+
+.pkg-img-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(5,14,29,0.8) 0%, transparent 60%);
+}
+
+.pkg-body { padding: 1.2rem 1.4rem 1.4rem; }
+
+.pkg-destination {
+  font-size: 0.78rem;
+  color: var(--tx-teal);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 0.4rem;
+}
+
+.pkg-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.6rem;
+  line-height: 1.3;
+}
+
+.pkg-meta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
+}
+
+.pkg-meta-item {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.5);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.pkg-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+/* ===== DESTINATIONS ===== */
+.dest-card {
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  text-decoration: none;
+}
+
+.dest-card:hover { transform: scale(1.03); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+
+.dest-card img {
+  width: 100%;
+  object-fit: cover;
+  transition: transform 0.6s;
+}
+
+.dest-card:hover img { transform: scale(1.1); }
+
+.dest-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(5,14,29,0.9) 0%, rgba(5,14,29,0.2) 60%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.5rem;
+}
+
+.dest-name {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.2rem;
+}
+
+/* ===== WHY US ===== */
+.feature-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.feature-card:hover {
+  background: rgba(232,160,32,0.05);
+  border-color: rgba(232,160,32,0.2);
+  transform: translateY(-5px);
+}
+
+.feature-icon {
+  width: 64px; height: 64px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin-bottom: 1.2rem;
+}
+
+/* ===== MARQUEE ===== */
+.marquee-wrap {
+  overflow: hidden;
+  background: rgba(232,160,32,0.06);
+  border-top: 1px solid rgba(232,160,32,0.1);
+  border-bottom: 1px solid rgba(232,160,32,0.1);
+  padding: 0.8rem 0;
+}
+
+.marquee-track {
+  display: flex;
+  animation: marquee 25s linear infinite;
+  white-space: nowrap;
+  gap: 3rem;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.marquee-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255,255,255,0.5);
+  font-size: 0.85rem;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.marquee-item i { color: var(--tx-accent); }
+
+/* ===== TESTIMONIALS ===== */
+.testimonial-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 1.8rem;
+  transition: all 0.3s ease;
+}
+
+.testimonial-card:hover { border-color: rgba(232,160,32,0.2); }
+
+.testimonial-quote {
+  font-size: 3rem;
+  line-height: 1;
+  color: var(--tx-accent);
+  font-family: Georgia, serif;
+  margin-bottom: -0.5rem;
+}
+
+.testimonial-text {
+  color: rgba(255,255,255,0.7);
+  font-size: 0.92rem;
+  line-height: 1.7;
+  margin-bottom: 1.2rem;
+}
+
+/* ===== CTA SECTION ===== */
+.cta-section {
+  background: linear-gradient(135deg, rgba(232,160,32,0.12) 0%, rgba(0,180,216,0.08) 100%);
+  border: 1px solid rgba(232,160,32,0.2);
+  border-radius: 30px;
+  padding: 4rem 3rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-section::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(ellipse at center, rgba(232,160,32,0.06) 0%, transparent 60%);
+  animation: cta-pulse 6s ease-in-out infinite;
+}
+
+@keyframes cta-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero-bg-mesh"></div>
+  <div class="hero-particles" id="particles"></div>
+
+  <div class="container py-5">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <div class="hero-content">
+          <div class="hero-eyebrow animate__animated animate__fadeInDown">
+            <i class="bi bi-stars"></i> #1 Rated Travel Platform in India
+          </div>
+
+          <h1 class="hero-title animate__animated animate__fadeInUp" style="animation-delay:0.1s;">
+            Explore the<br>
+            <span class="line-accent">World's Most</span><br>
+            Beautiful Places
+          </h1>
+
+          <p class="hero-desc animate__animated animate__fadeInUp" style="animation-delay:0.2s;">
+            Curated luxury travel experiences with expert guides, seamless booking, and memories that last a lifetime. Your dream journey starts here.
+          </p>
+
+          <!-- Hero Search -->
+          <div class="hero-search animate__animated animate__fadeInUp" style="animation-delay:0.3s;">
+            <form action="{% url 'package_list' %}" method="GET">
+              <div class="row g-2">
+                <div class="col-md-5">
+                  <label style="color:rgba(255,255,255,0.4);font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;display:block;">
+                    <i class="bi bi-search me-1"></i>Destination
+                  </label>
+                  <input type="text" name="q" class="search-field" placeholder="Where do you want to go?">
+                </div>
+                <div class="col-md-3">
+                  <label style="color:rgba(255,255,255,0.4);font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;display:block;">
+                    <i class="bi bi-calendar3 me-1"></i>Duration
+                  </label>
+                  <select name="min_days" class="search-field">
+                    <option value="">Any</option>
+                    <option value="3">3+ Days</option>
+                    <option value="5">5+ Days</option>
+                    <option value="7">7+ Days</option>
+                    <option value="10">10+ Days</option>
+                  </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                  <button type="submit" class="btn-tx-primary btn w-100" style="padding:0.75rem;">
+                    <i class="bi bi-search me-2"></i>Search Tours
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Stats -->
+          <div class="hero-stats animate__animated animate__fadeInUp" style="animation-delay:0.4s;">
+            <div>
+              <div class="hero-stat-num">50K+</div>
+              <div class="hero-stat-label">Happy Travelers</div>
+            </div>
+            <div style="width:1px;background:rgba(255,255,255,0.1);"></div>
+            <div>
+              <div class="hero-stat-num">200+</div>
+              <div class="hero-stat-label">Destinations</div>
+            </div>
+            <div style="width:1px;background:rgba(255,255,255,0.1);"></div>
+            <div>
+              <div class="hero-stat-num">4.9★</div>
+              <div class="hero-stat-label">Average Rating</div>
+            </div>
+            <div style="width:1px;background:rgba(255,255,255,0.1);"></div>
+            <div>
+              <div class="hero-stat-num">15+</div>
+              <div class="hero-stat-label">Years Experience</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="hero-visual animate__animated animate__fadeInRight" style="animation-delay:0.2s;">
+          <div style="position:relative;">
+            <!-- Main image placeholder with gradient -->
+            <div style="width:100%;height:520px;border-radius:30px;background:linear-gradient(135deg,#0d2040,#1a3a6b);border:1px solid rgba(255,255,255,0.1);overflow:hidden;position:relative;">
+              <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,180,216,0.2),rgba(232,160,32,0.15));"></div>
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;">
+                <div style="width:100%;height:100%;overflow:hidden;border-radius:20px;">
+  <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600"
+       alt="Travel World"
+       style="width:100%;height:100%;object-fit:cover;display:block;">
+</div>
+                <!-- <div style="font-family:var(--font-display);font-size:2rem;font-weight:700;color:rgba(255,255,255,0.6);">Discover</div>
+                <div style="font-size:1rem;color:rgba(255,255,255,0.3);">Upload destination images to bring this to life</div> -->
+              </div>
+              <!-- Decorative elements -->
+              <div style="position:absolute;top:10%;right:5%;width:200px;height:200px;border-radius:50%;background:rgba(0,180,216,0.08);filter:blur(40px);"></div>
+              <div style="position:absolute;bottom:20%;left:5%;width:150px;height:150px;border-radius:50%;background:rgba(232,160,32,0.1);filter:blur(30px);"></div>
+            </div>
+
+            <!-- Floating cards -->
+            <div class="hero-card-float" style="bottom:60px;left:-30px;animation-delay:0s;">
+              <div class="d-flex align-items-center gap-2">
+                <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--tx-green),#00a86b);display:flex;align-items:center;justify-content:center;font-size:1.1rem;">✓</div>
+                <div>
+                  <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);">Booking confirmed</div>
+                  <div style="font-size:0.9rem;font-weight:600;color:#fff;">Bali, Indonesia 🏝️</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="hero-card-float" style="top:40px;right:-20px;animation-delay:2s;">
+              <div class="d-flex align-items-center gap-2">
+                <div style="font-size:1.5rem;">⭐</div>
+                <div>
+                  <div style="font-size:0.9rem;font-weight:700;color:#fff;">4.9 Rating</div>
+                  <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">2,400+ Reviews</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="hero-card-float" style="top:50%;right:-25px;animation-delay:1s;">
+              <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:3px;">From only</div>
+              <div style="font-size:1.3rem;font-weight:700;color:var(--tx-accent);">₹12,999</div>
+              <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">per person</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MARQUEE ===== -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    {% for dest in "Bali,Paris,Maldives,Switzerland,Dubai,Kerala,Manali,Rajasthan,Singapore,Thailand,Japan,New Zealand,Italy,Greece,Canada,Australia"|split:"," %}
+    <div class="marquee-item"><i class="bi bi-geo-alt-fill"></i> {{ dest }}</div>
+    {% endfor %}
+    {% for dest in "Bali,Paris,Maldives,Switzerland,Dubai,Kerala,Manali,Rajasthan,Singapore,Thailand,Japan,New Zealand,Italy,Greece,Canada,Australia"|split:"," %}
+    <div class="marquee-item"><i class="bi bi-geo-alt-fill"></i> {{ dest }}</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ===== CATEGORIES ===== -->
+<section class="py-5" style="background:rgba(255,255,255,0.01);">
+  <div class="container">
+    <div class="text-center mb-5 fade-up">
+      <div class="badge-tx mb-3">Browse by Category</div>
+      <h2 class="section-title">Find Your <span class="highlight">Perfect Trip</span></h2>
+      <p class="section-subtitle mt-2">Explore curated experiences for every type of traveler</p>
+    </div>
+
+    <div class="d-flex gap-3 flex-wrap justify-content-center fade-up">
+      <a href="{% url 'package_list' %}" class="category-pill active">
+        <div class="category-icon-wrap">🌍</div>
+        <span style="font-size:0.82rem;font-weight:600;">All Tours</span>
+      </a>
+      {% for cat in categories %}
+      <a href="{% url 'package_list' %}?category={{ cat.slug }}" class="category-pill">
+        <div class="category-icon-wrap">
+          <i class="bi {{ cat.icon }}"></i>
+        </div>
+        <span style="font-size:0.82rem;font-weight:600;">{{ cat.name }}</span>
+      </a>
+      {% empty %}
+      {% for item in "🏖️ Beach,🏔️ Adventure,💑   Honeymoon,🏛️ Heritage,🌿  Wildlife,🎿  Winter,🛳️ Cruise,🌆  City Break"|split:"," %}
+      <div class="category-pill">
+        <div class="category-icon-wrap">{{ item|truncatechars:2 }}</div>
+        <span style="font-size:0.82rem;font-weight:600;">{{ item|slice:"3:" }}</span>
+      </div>
+      {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ===== FEATURED PACKAGES ===== -->
+<section class="py-5">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-5">
+      <div class="fade-up">
+        <div class="badge-tx mb-2">Hand-picked for You</div>
+        <h2 class="section-title">Featured <span class="highlight">Tour Packages</span></h2>
+      </div>
+      <a href="{% url 'package_list' %}" class="btn-tx-outline btn fade-up" style="white-space:nowrap;">
+        View All <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="row g-4">
+      {% for pkg in featured_packages %}
+      <div class="col-lg-4 col-md-6 fade-up" style="animation-delay:{{ forloop.counter0|add:1 }}00ms;">
+        <div class="pkg-card">
+          <div class="pkg-img-wrap">
+            {% if pkg.images.first %}
+            <img src="{{ pkg.images.first.image.url }}" alt="{{ pkg.title }}">
+            {% else %}
+            <div style="width:100%;height:220px;background:linear-gradient(135deg,#0d2040,#1a3a6b);display:flex;align-items:center;justify-content:center;font-size:4rem;">
+              🏔️
+            </div>
+            {% endif %}
+            <div class="pkg-img-overlay"></div>
+
+            <!-- Badges on image -->
+            <div style="position:absolute;top:12px;left:12px;display:flex;gap:6px;flex-wrap:wrap;">
+              {% if pkg.is_featured %}<span class="badge-tx" style="font-size:0.7rem;">⭐ Featured</span>{% endif %}
+              {% if pkg.is_bestseller %}<span class="badge-tx-coral" style="font-size:0.7rem;background:rgba(255,107,107,0.2);color:var(--tx-coral);border-color:rgba(255,107,107,0.3);">🔥 Bestseller</span>{% endif %}
+              {% if pkg.discount_percentage %}<span class="badge-tx-green" style="font-size:0.7rem;">{{ pkg.discount_percentage }}% OFF</span>{% endif %}
+            </div>
+
+            <!-- Wishlist -->
+            {% if user.is_authenticated %}
+            <button class="wishlist-btn" onclick="toggleWishlist({{ pkg.id }}, this)" title="Add to Wishlist">
+              <i class="bi bi-heart"></i>
+            </button>
+            {% endif %}
+
+            <!-- Duration badge on image -->
+            <div style="position:absolute;bottom:12px;left:12px;">
+              <span class="badge-tx-teal" style="font-size:0.75rem;">
+                <i class="bi bi-clock me-1"></i>{{ pkg.duration_days }}D/{{ pkg.duration_nights }}N
+              </span>
+            </div>
+          </div>
+
+          <div class="pkg-body">
+            <div class="pkg-destination">
+              <i class="bi bi-geo-alt-fill"></i>
+              {{ pkg.destination.name }}, {{ pkg.destination.country }}
+            </div>
+
+            <h3 class="pkg-title">
+              <a href="{% url 'package_detail' pkg.slug %}" style="color:inherit;text-decoration:none;">
+                {{ pkg.title }}
+              </a>
+            </h3>
+
+            <!-- Stars -->
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <div class="stars">
+                {% for i in "12345" %}
+                  {% if forloop.counter <= pkg.avg_rating %}★{% else %}☆{% endif %}
+                {% endfor %}
+              </div>
+              <span style="font-size:0.8rem;color:rgba(255,255,255,0.5);">
+                {{ pkg.avg_rating }} ({{ pkg.review_count }} reviews)
+              </span>
+            </div>
+
+            <div class="pkg-meta">
+              <span class="pkg-meta-item">
+                <i class="bi bi-people"></i> Max {{ pkg.total_seats }}
+              </span>
+              <span class="pkg-meta-item">
+                <i class="bi bi-building"></i> {{ pkg.get_hotel_type_display }}
+              </span>
+              <span class="pkg-meta-item">
+                <i class="bi bi-airplane"></i> {{ pkg.get_transport_type_display }}
+              </span>
+            </div>
+
+            <div class="pkg-footer">
+              <div>
+                {% if pkg.discount_percentage %}
+                <div class="price-original">₹{{ pkg.price_per_person|floatformat:0 }}</div>
+                {% endif %}
+                <div class="price-tag">₹{{ pkg.discounted_price|floatformat:0 }}
+                  <span style="font-size:0.75rem;color:rgba(255,255,255,0.4);font-weight:400;">/person</span>
+                </div>
+              </div>
+              <a href="{% url 'package_detail' pkg.slug %}" class="btn-tx-primary btn" style="padding:0.5rem 1.2rem;font-size:0.85rem;">
+                Book Now
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12 text-center py-5" style="color:rgba(255,255,255,0.3);">
+        <div style="font-size:4rem;margin-bottom:1rem;">✈️</div>
+        <p>No featured packages yet. Add packages from the admin panel.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ===== POPULAR DESTINATIONS ===== -->
+{% if popular_destinations %}
+<section class="py-5" style="background:rgba(255,255,255,0.01);">
+  <div class="container">
+    <div class="text-center mb-5 fade-up">
+      <div class="badge-tx mb-2">Top Picks</div>
+      <h2 class="section-title">Popular <span class="highlight">Destinations</span></h2>
+      <p class="section-subtitle mt-2">Explore the world's most sought-after travel destinations</p>
+    </div>
+
+    <div class="row g-3">
+      {% for dest in popular_destinations %}
+      <div class="col-lg-{% if forloop.counter == 1 %}8{% elif forloop.counter == 2 %}4{% elif forloop.counter == 3 or forloop.counter == 4 %}6{% else %}4{% endif %} fade-up" style="animation-delay:{{ forloop.counter0 }}00ms;">
+        <a href="{% url 'destination_detail' dest.pk %}" class="dest-card d-block" style="height:{% if forloop.counter == 1 or forloop.counter == 2 %}280px{% else %}200px{% endif %};">
+          {% if dest.image %}
+          <img src="{{ dest.image.url }}" alt="{{ dest.name }}" style="height:100%;">
+          {% else %}
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#0d2040,#1a3a6b);display:flex;align-items:center;justify-content:center;font-size:4rem;">
+            🌏
+          </div>
+          {% endif %}
+          <div class="dest-overlay">
+            <div class="dest-name">{{ dest.name }}</div>
+            <div style="color:rgba(255,255,255,0.6);font-size:0.85rem;">
+              <i class="bi bi-geo-alt me-1"></i>{{ dest.country }}
+            </div>
+            <div style="margin-top:0.4rem;">
+              <span class="badge-tx-teal" style="font-size:0.72rem;">
+                {{ dest.packages.count }} Packages
+              </span>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ===== WHY CHOOSE US ===== -->
+<section class="py-5">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-5 fade-up">
+        <div class="badge-tx mb-3">Why TravelX Pro?</div>
+        <h2 class="section-title">Travel Better,<br><span class="highlight">Live More</span></h2>
+        <p class="section-subtitle mt-3">
+          We don't just book trips — we craft unforgettable experiences with expert local knowledge, round-the-clock support, and transparent pricing.
+        </p>
+        <div class="mt-4 d-flex gap-3 flex-wrap">
+          <a href="{% url 'package_list' %}" class="btn-tx-primary btn">Explore Tours</a>
+          <a href="{% url 'register' %}" class="btn-tx-outline btn">Join Free</a>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <div class="row g-3">
+          {% for feature in "🛡️|100% Safe & Secure|Verified packages with full insurance and transparent pricing.,⚡|Instant Confirmation|Get booking confirmations with QR tickets instantly after payment.,🌟|Expert Guides|Certified local guides with years of experience in every destination.,💰|Best Price Promise|Find a lower price? We'll match it and give you an extra 5% off.,📱|24/7 Support|Round-the-clock customer support via chat, call, or email.,🔄|Free Cancellation|Flexible cancellation policy up to 48 hours before departure."|split:"." %}
+          {% with feature|split:"|" as parts %}
+          {% if parts.1 %}
+          <div class="col-md-6 fade-up" style="animation-delay:{{ forloop.counter0 }}00ms;">
+            <div class="feature-card">
+              <div class="feature-icon" style="background:rgba(232,160,32,0.1);">
+                {{ parts.0 }}
+              </div>
+              <h5 style="color:#fff;font-weight:700;margin-bottom:0.5rem;font-size:1rem;">{{ parts.1 }}</h5>
+              <p style="color:rgba(255,255,255,0.45);font-size:0.85rem;margin:0;line-height:1.6;">{{ parts.2 }}</p>
+            </div>
+          </div>
+          {% endif %}
+          {% endwith %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TOP RATED ===== -->
+{% if top_rated %}
+<section class="py-5" style="background:rgba(255,255,255,0.01);">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-5">
+      <div class="fade-up">
+        <div class="badge-tx mb-2">Customer Favorites</div>
+        <h2 class="section-title">Top <span class="highlight">Rated Packages</span></h2>
+      </div>
+      <a href="{% url 'package_list' %}?sort=rating" class="btn-tx-outline btn fade-up">
+        View All <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+    <div class="row g-4">
+      {% for pkg in top_rated %}
+      <div class="col-lg-3 col-md-6 fade-up" style="animation-delay:{{ forloop.counter0 }}00ms;">
+        <div class="pkg-card">
+          <div class="pkg-img-wrap" style="height:180px;">
+            {% if pkg.images.first %}
+            <img src="{{ pkg.images.first.image.url }}" alt="{{ pkg.title }}">
+            {% else %}
+            <div style="width:100%;height:180px;background:linear-gradient(135deg,#0d2040,#1a3a6b);display:flex;align-items:center;justify-content:center;font-size:3rem;">🌴</div>
+            {% endif %}
+            <div class="pkg-img-overlay"></div>
+            <div style="position:absolute;top:10px;left:10px;">
+              <span class="badge-tx-green" style="font-size:0.7rem;">⭐ {{ pkg.avg_rating }}/5</span>
+            </div>
+          </div>
+          <div class="pkg-body" style="padding:1rem;">
+            <div class="pkg-destination"><i class="bi bi-geo-alt-fill"></i> {{ pkg.destination.name }}</div>
+            <h4 class="pkg-title" style="font-size:0.95rem;">{{ pkg.title|truncatechars:45 }}</h4>
+            <div class="pkg-footer" style="padding-top:0.6rem;">
+              <div class="price-tag" style="font-size:1.2rem;">₹{{ pkg.discounted_price|floatformat:0 }}</div>
+              <a href="{% url 'package_detail' pkg.slug %}" class="btn-tx-teal btn" style="padding:0.4rem 1rem;font-size:0.8rem;">View</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+
+
+<!-- ===== CTA ===== -->
+<section class="py-5">
+  <div class="container">
+    <div class="cta-section fade-up">
+      <div style="position:relative;z-index:2;">
+        <div class="badge-tx mb-3">Limited Time Offer</div>
+        <h2 class="section-title mb-3">Ready to Start Your<br><span class="highlight">Next Adventure?</span></h2>
+        <p class="section-subtitle mb-4" style="max-width:500px;margin:0 auto 2rem;">
+          Join 50,000+ travelers who trust TravelX Pro. Get 15% off your first booking when you register today.
+        </p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+          <a href="{% url 'register' %}" class="btn-tx-primary btn" style="font-size:1rem;padding:1rem 2.5rem;">
+            <i class="bi bi-person-plus me-2"></i>Get Started Free
+          </a>
+          <a href="{% url 'package_list' %}" class="btn-tx-outline btn" style="font-size:1rem;padding:1rem 2.5rem;">
+            <i class="bi bi-compass me-2"></i>Browse Tours
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Particle system
+function createParticles() {
+  const container = document.getElementById('particles');
+  const colors = ['rgba(232,160,32,0.4)', 'rgba(0,180,216,0.4)', 'rgba(255,255,255,0.2)'];
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 4 + 1;
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random() * 100}%;
+      background:${colors[Math.floor(Math.random() * colors.length)]};
+      animation-duration:${Math.random() * 15 + 8}s;
+      animation-delay:${Math.random() * 10}s;
+    `;
+    container.appendChild(p);
+  }
+}
+createParticles();
+
+// Wishlist toggle
+async function toggleWishlist(packageId, btn) {
+  try {
+    const response = await fetch(`/tours/wishlist/toggle/${packageId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/json'
+      }
+    });
+    const data = await response.json();
+    const icon = btn.querySelector('i');
+    if (data.status === 'added') {
+      btn.classList.add('active');
+      icon.className = 'bi bi-heart-fill';
+    } else {
+      btn.classList.remove('active');
+      icon.className = 'bi bi-heart';
+    }
+  } catch(e) { console.error(e); }
+}
+
+// Number counter animation
+function animateCounters() {
+  document.querySelectorAll('.hero-stat-num').forEach(el => {
+    const text = el.innerText;
+    const num = parseInt(text.replace(/\D/g, ''));
+    if (!num) return;
+    let start = 0;
+    const inc = num / 60;
+    const timer = setInterval(() => {
+      start += inc;
+      if (start >= num) {
+        el.innerText = text;
+        clearInterval(timer);
+      } else {
+        el.innerText = text.replace(num, Math.floor(start));
+      }
+    }, 30);
+  });
+}
+setTimeout(animateCounters, 500);
+</script>
+{% endblock %}

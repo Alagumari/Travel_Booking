@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}TravelX Pro{% endblock %} | Discover the World</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Animate.css -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --tx-primary: #0a1628;
+      --tx-accent: #e8a020;
+      --tx-gold: #f5c842;
+      --tx-teal: #00b4d8;
+      --tx-coral: #ff6b6b;
+      --tx-green: #06d6a0;
+      --tx-purple: #7b2d8b;
+      --tx-glass: rgba(255,255,255,0.08);
+      --tx-glass-border: rgba(255,255,255,0.15);
+      --tx-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      --tx-radius: 20px;
+      --tx-radius-sm: 12px;
+      --font-display: 'Playfair Display', serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-body);
+      background: #050e1d;
+      color: #e8e8f0;
+      overflow-x: hidden;
+    }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0a1628; }
+    ::-webkit-scrollbar-thumb { background: var(--tx-accent); border-radius: 3px; }
+
+    /* ===== NAVBAR ===== */
+    .navbar-tx {
+      background: rgba(5,14,29,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(232,160,32,0.15);
+      padding: 1rem 0;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 1050;
+      transition: all 0.3s ease;
+    }
+
+    .navbar-tx.scrolled {
+      background: rgba(5,14,29,0.97);
+      padding: 0.6rem 0;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+    }
+
+    .navbar-brand-tx {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--tx-accent), var(--tx-gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+
+    .navbar-brand-tx span { color: var(--tx-teal); -webkit-text-fill-color: var(--tx-teal); }
+
+    .nav-link-tx {
+      color: rgba(255,255,255,0.8) !important;
+      font-weight: 500;
+      font-size: 0.92rem;
+      padding: 0.5rem 1rem !important;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .nav-link-tx::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 50%;
+      width: 0; height: 2px;
+      background: var(--tx-accent);
+      transition: all 0.3s ease;
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+
+    .nav-link-tx:hover::after, .nav-link-tx.active::after { width: 70%; }
+    .nav-link-tx:hover { color: #fff !important; background: rgba(255,255,255,0.06); }
+
+    .btn-nav-login {
+      background: transparent;
+      border: 1.5px solid var(--tx-accent);
+      color: var(--tx-accent) !important;
+      border-radius: 50px;
+      padding: 0.4rem 1.3rem !important;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-nav-login:hover {
+      background: var(--tx-accent);
+      color: var(--tx-primary) !important;
+    }
+
+    .btn-nav-register {
+      background: linear-gradient(135deg, var(--tx-accent), var(--tx-gold));
+      border: none;
+      color: var(--tx-primary) !important;
+      border-radius: 50px;
+      padding: 0.4rem 1.3rem !important;
+      font-weight: 700;
+      transition: all 0.3s ease;
+    }
+
+    .btn-nav-register:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(232,160,32,0.4);
+    }
+
+    /* ===== NOTIFICATION BADGE ===== */
+    .notif-badge {
+      background: var(--tx-coral);
+      color: white;
+      font-size: 0.65rem;
+      padding: 1px 5px;
+      border-radius: 10px;
+      position: absolute;
+      top: 2px; right: 2px;
+      font-weight: 700;
+    }
+
+    /* ===== CARDS ===== */
+    .card-tx {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--tx-radius);
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      backdrop-filter: blur(10px);
+    }
+
+    .card-tx:hover {
+      transform: translateY(-10px);
+      border-color: rgba(232,160,32,0.3);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(232,160,32,0.1);
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn-tx-primary {
+      background: linear-gradient(135deg, var(--tx-accent) 0%, var(--tx-gold) 100%);
+      color: var(--tx-primary);
+      border: none;
+      border-radius: 50px;
+      padding: 0.8rem 2rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-tx-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(232,160,32,0.45);
+      color: var(--tx-primary);
+    }
+
+    .btn-tx-outline {
+      background: transparent;
+      border: 2px solid var(--tx-accent);
+      color: var(--tx-accent);
+      border-radius: 50px;
+      padding: 0.75rem 2rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-tx-outline:hover {
+      background: var(--tx-accent);
+      color: var(--tx-primary);
+      transform: translateY(-2px);
+    }
+
+    .btn-tx-teal {
+      background: linear-gradient(135deg, var(--tx-teal), #0077b6);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 0.75rem 1.8rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-tx-teal:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0,180,216,0.4);
+      color: white;
+    }
+
+    /* ===== BADGES ===== */
+    .badge-tx {
+      background: rgba(232,160,32,0.15);
+      color: var(--tx-gold);
+      border: 1px solid rgba(232,160,32,0.3);
+      border-radius: 50px;
+      padding: 0.25rem 0.8rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-tx-teal {
+      background: rgba(0,180,216,0.15);
+      color: var(--tx-teal);
+      border: 1px solid rgba(0,180,216,0.3);
+      border-radius: 50px;
+      padding: 0.25rem 0.8rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-tx-green {
+      background: rgba(6,214,160,0.15);
+      color: var(--tx-green);
+      border: 1px solid rgba(6,214,160,0.3);
+      border-radius: 50px;
+      padding: 0.25rem 0.8rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-tx-coral {
+      background: rgba(255,107,107,0.15);
+      color: var(--tx-coral);
+      border: 1px solid rgba(255,107,107,0.3);
+      border-radius: 50px;
+      padding: 0.25rem 0.8rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    /* ===== SECTION TITLES ===== */
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 900;
+      line-height: 1.1;
+      color: #fff;
+    }
+
+    .section-title .highlight {
+      background: linear-gradient(135deg, var(--tx-accent), var(--tx-gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .section-subtitle {
+      color: rgba(255,255,255,0.55);
+      font-size: 1.05rem;
+      font-weight: 400;
+    }
+
+    /* ===== GLASS PANELS ===== */
+    .glass-panel {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--tx-radius);
+    }
+
+    /* ===== STAR RATING ===== */
+    .stars { color: var(--tx-gold); font-size: 0.85rem; letter-spacing: 1px; }
+
+    /* ===== PRICE TAG ===== */
+    .price-tag {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--tx-accent);
+    }
+
+    .price-original {
+      text-decoration: line-through;
+      color: rgba(255,255,255,0.35);
+      font-size: 0.95rem;
+    }
+
+    /* ===== TOAST ===== */
+    .toast-container-tx {
+      position: fixed;
+      top: 90px;
+      right: 20px;
+      z-index: 9999;
+    }
+
+    .toast-tx {
+      background: rgba(10,22,40,0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--tx-radius-sm);
+      color: #fff;
+      min-width: 300px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    /* ===== FOOTER ===== */
+    .footer-tx {
+      background: rgba(5,14,29,0.95);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 4rem 0 2rem;
+    }
+
+    .footer-brand {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--tx-accent), var(--tx-gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .footer-link {
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.3s;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .footer-link:hover { color: var(--tx-accent); }
+
+    .footer-social a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.6);
+      font-size: 1.1rem;
+      margin-right: 0.5rem;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .footer-social a:hover {
+      background: var(--tx-accent);
+      color: var(--tx-primary);
+      transform: translateY(-3px);
+    }
+
+    /* ===== DIVIDER ===== */
+    .divider-tx {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(232,160,32,0.4), transparent);
+      border: none;
+      margin: 2rem 0;
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-15px); }
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(232,160,32,0.3); }
+      50% { box-shadow: 0 0 40px rgba(232,160,32,0.6); }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -1000px 0; }
+      100% { background-position: 1000px 0; }
+    }
+
+    .float-anim { animation: float 4s ease-in-out infinite; }
+    .pulse-glow-anim { animation: pulse-glow 3s ease-in-out infinite; }
+
+    .fade-up {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .main-content { padding-top: 76px; min-height: 100vh; }
+
+    /* ===== BREADCRUMB ===== */
+    .breadcrumb-tx {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 50px;
+      padding: 0.5rem 1.5rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .breadcrumb-tx a { color: var(--tx-accent); text-decoration: none; }
+    .breadcrumb-tx span { color: rgba(255,255,255,0.4); }
+
+    /* ===== FORM CONTROLS ===== */
+    .form-control-tx {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--tx-radius-sm);
+      color: #fff;
+      padding: 0.75rem 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-control-tx:focus {
+      background: rgba(255,255,255,0.08);
+      border-color: var(--tx-accent);
+      box-shadow: 0 0 0 3px rgba(232,160,32,0.15);
+      color: #fff;
+      outline: none;
+    }
+
+    .form-control-tx::placeholder { color: rgba(255,255,255,0.3); }
+
+    .form-label-tx {
+      color: rgba(255,255,255,0.7);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      letter-spacing: 0.3px;
+    }
+
+    /* ===== WISHLIST HEART ===== */
+    .wishlist-btn {
+      position: absolute;
+      top: 12px; right: 12px;
+      width: 36px; height: 36px;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      z-index: 10;
+    }
+
+    .wishlist-btn:hover { transform: scale(1.15); background: rgba(255,107,107,0.8); }
+    .wishlist-btn.active { background: var(--tx-coral); color: white; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .section-title { font-size: 2rem; }
+      .card-tx:hover { transform: translateY(-5px); }
+    }
+  </style>
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar-tx navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand-tx" href="{% url 'home' %}">
+      Travel<span>X</span> Pro
+    </a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"
+            style="color: rgba(255,255,255,0.7);">
+      <i class="bi bi-list fs-2"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarMain">
+      <ul class="navbar-nav mx-auto gap-1">
+        <li class="nav-item">
+          <a class="nav-link-tx nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+             href="{% url 'home' %}">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link-tx nav-link" href="{% url 'package_list' %}">Tours</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link-tx nav-link" href="{% url 'package_list' %}?sort=rating">Top Rated</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link-tx nav-link" href="{% url 'package_list' %}?sort=popular">Popular</a>
+        </li>
+        {% if user.is_authenticated %}
+        <li class="nav-item">
+          <a class="nav-link-tx nav-link" href="{% url 'wishlist' %}">
+            <i class="bi bi-heart me-1"></i>Wishlist
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+
+      <div class="d-flex align-items-center gap-2">
+        {% if user.is_authenticated %}
+          <!-- Notifications -->
+          <a href="{% url 'notifications' %}" class="position-relative nav-link-tx nav-link p-2">
+            <i class="bi bi-bell fs-5"></i>
+            {% with user.notifications.filter as notifs %}
+            {% endwith %}
+          </a>
+
+          <!-- User Dropdown -->
+          <div class="dropdown">
+            <button class="btn d-flex align-items-center gap-2 glass-panel px-3 py-2"
+                    style="color: white; border-color: rgba(255,255,255,0.1);"
+                    data-bs-toggle="dropdown">
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--tx-accent),var(--tx-gold));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:var(--tx-primary);">
+                {{ user.first_name|first|upper|default:user.username|first|upper }}
+              </div>
+              <span style="font-size:0.9rem;font-weight:600;">{{ user.first_name|default:user.username }}</span>
+              <i class="bi bi-chevron-down" style="font-size:0.75rem;opacity:0.6;"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end"
+                style="background:rgba(10,22,40,0.97);border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(20px);border-radius:16px;padding:0.5rem;min-width:200px;">
+              <li>
+                <a class="dropdown-item rounded-2 py-2" href="{% url 'user_dashboard' %}"
+                   style="color:rgba(255,255,255,0.85);font-size:0.9rem;">
+                  <i class="bi bi-speedometer2 me-2" style="color:var(--tx-accent);"></i>Dashboard
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item rounded-2 py-2" href="{% url 'profile' %}"
+                   style="color:rgba(255,255,255,0.85);font-size:0.9rem;">
+                  <i class="bi bi-person me-2" style="color:var(--tx-teal);"></i>Profile
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item rounded-2 py-2" href="{% url 'booking_history' %}"
+                   style="color:rgba(255,255,255,0.85);font-size:0.9rem;">
+                  <i class="bi bi-bag-check me-2" style="color:var(--tx-green);"></i>My Bookings
+                </a>
+              </li>
+              {% if user.is_staff %}
+              <li><hr class="dropdown-divider" style="border-color:rgba(255,255,255,0.1);"></li>
+              <li>
+                <a class="dropdown-item rounded-2 py-2" href="{% url 'admin_dashboard' %}"
+                   style="color:var(--tx-accent);font-size:0.9rem;font-weight:600;">
+                  <i class="bi bi-shield-check me-2"></i>Admin Panel
+                </a>
+              </li>
+              {% endif %}
+              <li><hr class="dropdown-divider" style="border-color:rgba(255,255,255,0.1);"></li>
+              <li>
+                <a class="dropdown-item rounded-2 py-2" href="{% url 'logout' %}"
+                   style="color:var(--tx-coral);font-size:0.9rem;">
+                  <i class="bi bi-box-arrow-right me-2"></i>Logout
+                </a>
+              </li>
+            </ul>
+          </div>
+
+        {% else %}
+          <a href="{% url 'login' %}" class="btn-nav-login nav-link">Login</a>
+          <a href="{% url 'register' %}" class="btn-nav-register nav-link">Register</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== MESSAGES / TOASTS ===== -->
+<div class="toast-container-tx">
+  {% for message in messages %}
+  <div class="toast toast-tx show mb-2" role="alert" data-bs-delay="4000" data-bs-autohide="true">
+    <div class="toast-body d-flex align-items-center gap-3 py-3 px-4">
+      {% if message.tags == 'success' %}
+        <i class="bi bi-check-circle-fill" style="color:var(--tx-green);font-size:1.2rem;"></i>
+      {% elif message.tags == 'error' %}
+        <i class="bi bi-x-circle-fill" style="color:var(--tx-coral);font-size:1.2rem;"></i>
+      {% elif message.tags == 'warning' %}
+        <i class="bi bi-exclamation-triangle-fill" style="color:var(--tx-gold);font-size:1.2rem;"></i>
+      {% else %}
+        <i class="bi bi-info-circle-fill" style="color:var(--tx-teal);font-size:1.2rem;"></i>
+      {% endif %}
+      <span style="font-size:0.9rem;">{{ message }}</span>
+      <button type="button" class="btn-close btn-close-white btn-sm ms-auto"
+              data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main-content">
+  {% block content %}{% endblock %}
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer-tx">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="footer-brand mb-3">TravelX Pro</div>
+        <p style="color:rgba(255,255,255,0.45);font-size:0.9rem;line-height:1.7;max-width:300px;">
+          Your premium travel companion. Discover extraordinary destinations, create unforgettable memories with expert guidance.
+        </p>
+        <div class="footer-social mt-3">
+          <a href="#"><i class="bi bi-facebook"></i></a>
+          <a href="#"><i class="bi bi-instagram"></i></a>
+          <a href="#"><i class="bi bi-twitter-x"></i></a>
+          <a href="#"><i class="bi bi-youtube"></i></a>
+          <a href="#"><i class="bi bi-linkedin"></i></a>
+        </div>
+      </div>
+      <div class="col-lg-2 col-6">
+        <h6 style="color:rgba(255,255,255,0.9);font-weight:700;margin-bottom:1rem;font-size:0.9rem;letter-spacing:1px;text-transform:uppercase;">Explore</h6>
+        <a href="{% url 'package_list' %}" class="footer-link">All Tours</a>
+        <a href="{% url 'package_list' %}?category=adventure" class="footer-link">Adventure</a>
+        <a href="{% url 'package_list' %}?category=beach" class="footer-link">Beach Holidays</a>
+        <a href="{% url 'package_list' %}?category=honeymoon" class="footer-link">Honeymoon</a>
+        <a href="{% url 'package_list' %}?sort=popular" class="footer-link">Popular Tours</a>
+      </div>
+      <div class="col-lg-2 col-6">
+        <h6 style="color:rgba(255,255,255,0.9);font-weight:700;margin-bottom:1rem;font-size:0.9rem;letter-spacing:1px;text-transform:uppercase;">Account</h6>
+        {% if user.is_authenticated %}
+        <a href="{% url 'user_dashboard' %}" class="footer-link">Dashboard</a>
+        <a href="{% url 'booking_history' %}" class="footer-link">My Bookings</a>
+        <a href="{% url 'wishlist' %}" class="footer-link">Wishlist</a>
+        <a href="{% url 'profile' %}" class="footer-link">Profile</a>
+        {% else %}
+        <a href="{% url 'login' %}" class="footer-link">Login</a>
+        <a href="{% url 'register' %}" class="footer-link">Register</a>
+        {% endif %}
+      </div>
+      <div class="col-lg-4">
+        <h6 style="color:rgba(255,255,255,0.9);font-weight:700;margin-bottom:1rem;font-size:0.9rem;letter-spacing:1px;text-transform:uppercase;">Stay Updated</h6>
+        <p style="color:rgba(255,255,255,0.45);font-size:0.88rem;margin-bottom:1rem;">Get exclusive deals and travel inspiration.</p>
+        <div class="d-flex gap-2">
+          <input type="email" class="form-control form-control-tx" placeholder="Your email" style="flex:1;">
+          <button class="btn-tx-primary btn" style="white-space:nowrap;padding:0.6rem 1.2rem;">
+            Subscribe
+          </button>
+        </div>
+        <div class="mt-3 d-flex gap-3 flex-wrap">
+          <div class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.5);font-size:0.85rem;">
+            <i class="bi bi-telephone" style="color:var(--tx-accent);"></i>
+            +91 99999 99999
+          </div>
+          <div class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.5);font-size:0.85rem;">
+            <i class="bi bi-envelope" style="color:var(--tx-accent);"></i>
+            hello@travelxpro.com
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider-tx">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center">
+      <p style="color:rgba(255,255,255,0.3);font-size:0.82rem;margin:0;">
+        © 2026 TravelX Pro. Azhagu. All rights reserved. Made with <i class="bi bi-heart-fill" style="color:var(--tx-coral);"></i> for travelers.
+      </p>
+      <!-- <div class="d-flex gap-3">
+        <a href="#" class="footer-link" style="display:inline;">Privacy</a>
+        <a href="#" class="footer-link" style="display:inline;">Terms</a>
+        <a href="#" class="footer-link" style="display:inline;">Support</a>
+      </div> -->
+    </div>
+  </div>
+</footer>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Navbar scroll effect
+  window.addEventListener('scroll', () => {
+    const nav = document.querySelector('.navbar-tx');
+    nav.classList.toggle('scrolled', window.scrollY > 50);
+  });
+
+  // Auto-hide toasts
+  document.querySelectorAll('.toast').forEach(el => {
+    const toast = new bootstrap.Toast(el, { autohide: true, delay: 4500 });
+    toast.show();
+  });
+
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 100);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

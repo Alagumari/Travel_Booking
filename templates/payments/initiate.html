@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% block title %}Payment - {{ booking.booking_id }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.payment-page { min-height:100vh;padding:3rem 0; }
+
+.payment-card {
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:24px;
+  padding:2rem;
+  max-width:900px;
+  margin:0 auto;
+}
+
+.order-summary {
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:16px;
+  padding:1.5rem;
+}
+
+.pay-method-btn {
+  background:rgba(255,255,255,0.04);
+  border:2px solid rgba(255,255,255,0.08);
+  border-radius:14px;
+  padding:1rem;
+  cursor:pointer;
+  transition:all 0.3s;
+  text-align:center;
+}
+
+.pay-method-btn:hover,
+.pay-method-btn.active {
+  background:rgba(232,160,32,0.08);
+  border-color:rgba(232,160,32,0.4);
+}
+
+.razorpay-seal {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:0.5rem;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:10px;
+  padding:0.6rem 1rem;
+  font-size:0.78rem;
+  color:rgba(255,255,255,0.4);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="payment-page">
+  <div class="container">
+    <div class="payment-card">
+
+      <h2 style="color:#fff;font-weight:900;">
+        Complete Your Booking 💳
+      </h2>
+
+      <p style="color:rgba(255,255,255,0.4);">
+        Booking ID: <strong style="color:#e8a020">{{ booking.booking_id }}</strong>
+      </p>
+
+      <div class="row g-4">
+
+        <!-- LEFT -->
+        <div class="col-md-5">
+          <div class="order-summary">
+
+            <h5 style="color:#fff;">Order Summary</h5>
+
+            <div style="margin-bottom:1rem;">
+              <div style="font-weight:700;color:#fff;">
+                {{ booking.package.title }}
+              </div>
+              <div style="font-size:0.8rem;color:rgba(255,255,255,0.5);">
+                {{ booking.package.destination.name }},
+                {{ booking.package.destination.country }}
+              </div>
+            </div>
+
+            <div style="font-size:0.85rem;">
+              <div class="d-flex justify-content-between mb-2">
+                <span>Travel Date</span>
+                <span>{{ booking.travel_date|date:"d M Y" }}</span>
+              </div>
+
+              <div class="d-flex justify-content-between mb-2">
+                <span>Duration</span>
+                <span>{{ booking.package.duration_days }}D / {{ booking.package.duration_nights }}N</span>
+              </div>
+
+              <div class="d-flex justify-content-between mb-2">
+                <span>Adults</span>
+                <span>{{ booking.num_adults }}</span>
+              </div>
+
+              <div class="d-flex justify-content-between mb-2">
+                <span>Children</span>
+                <span>{{ booking.num_children }}</span>
+              </div>
+
+              <div class="d-flex justify-content-between mb-2">
+                <span>Hotel</span>
+                <span>{{ booking.get_hotel_type_display }}</span>
+              </div>
+            </div>
+
+            <hr>
+
+            <div class="d-flex justify-content-between">
+              <strong>Total</strong>
+              <strong style="color:#e8a020;font-size:1.3rem;">
+                ₹{{ booking.total_amount|floatformat:0 }}
+              </strong>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="col-md-7">
+
+          <h5 style="color:#fff;">Select Payment Method</h5>
+
+          <div class="row g-2 mb-4">
+            {% for method in methods %}
+            <div class="col-6">
+              <div class="pay-method-btn {% if forloop.first %}active{% endif %}"
+                   onclick="selectMethod(this)">
+                {{ method }}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <button id="rzp-btn"
+                  class="btn btn-warning w-100"
+                  onclick="initiateRazorpay()">
+            Pay ₹{{ booking.total_amount|floatformat:0 }}
+          </button>
+
+          <form id="paymentForm" method="POST" action="{% url 'payment_callback' %}" style="display:none;">
+            {% csrf_token %}
+            <input type="hidden" name="razorpay_payment_id" id="rzp_payment_id">
+            <input type="hidden" name="razorpay_order_id" id="rzp_order_id">
+            <input type="hidden" name="razorpay_signature" id="rzp_signature">
+            <input type="hidden" name="booking_id" value="{{ booking.booking_id }}">
+          </form>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+function selectMethod(el){
+  document.querySelectorAll('.pay-method-btn')
+    .forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function initiateRazorpay(){
+  const options = {
+    key: "{{ razorpay_key_id }}",
+    amount: {{ amount_paise }},
+    currency: "INR",
+    order_id: "{{ razorpay_order_id }}",
+    name: "TravelX Pro",
+
+    handler: function(response){
+      document.getElementById("rzp_payment_id").value = response.razorpay_payment_id;
+      document.getElementById("rzp_order_id").value = response.razorpay_order_id;
+      document.getElementById("rzp_signature").value = response.razorpay_signature;
+      document.getElementById("paymentForm").submit();
+    }
+  };
+
+  const rzp = new Razorpay(options);
+  rzp.open();
+}
+</script>
+{% endblock %}

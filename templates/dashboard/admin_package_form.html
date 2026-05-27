@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Package - Admin{% endblock %}
+{% block content %}
+<div style="padding:2rem 0;min-height:80vh;">
+  <div class="container" style="max-width:900px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 style="font-family:var(--font-display);font-size:1.8rem;font-weight:900;color:#fff;margin:0;">
+        <i class="bi bi-map me-2" style="color:var(--tx-accent);"></i>{{ action }} Package
+      </h2>
+
+      <!-- ✅ Back button — role பொறுத்து different URL -->
+      {% if request.user.profile.role == 'agent' %}
+      <a href="{% url 'user_dashboard' %}" class="btn-tx-outline btn" style="font-size:0.88rem;padding:0.5rem 1.2rem;">
+        <i class="bi bi-arrow-left me-1"></i>Back
+      </a>
+      {% else %}
+      <a href="{% url 'admin_packages' %}" class="btn-tx-outline btn" style="font-size:0.88rem;padding:0.5rem 1.2rem;">
+        <i class="bi bi-arrow-left me-1"></i>Back
+      </a>
+      {% endif %}
+    </div>
+
+    <div class="glass-panel p-4">
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row g-3">
+          {% for field in form %}
+          <div class="col-{% if field.field.widget.input_type == 'textarea' or field.name == 'description' or field.name == 'highlights' or field.name == 'inclusions' or field.name == 'exclusions' %}12{% elif field.name in 'title,short_description' %}12{% else %}md-6{% endif %}">
+            <label class="form-label-tx">{{ field.label }}</label>
+            <div>
+              {% if field.field.widget.input_type == 'select' %}
+              <select name="{{ field.html_name }}" class="form-control form-control-tx">
+                {% for value, label in field.field.choices %}
+                <option value="{{ value }}" {% if field.value == value %}selected{% endif %} style="background:#0a1628;">{{ label }}</option>
+                {% endfor %}
+              </select>
+              {% elif field.field.widget.input_type == 'textarea' %}
+              <textarea name="{{ field.html_name }}" class="form-control form-control-tx" rows="4"
+                        placeholder="{{ field.help_text }}">{{ field.value|default:'' }}</textarea>
+              {% elif field.field.widget.input_type == 'checkbox' %}
+              <div style="margin-top:0.4rem;">
+                <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;color:rgba(255,255,255,0.7);">
+                  <input type="checkbox" name="{{ field.html_name }}" {% if field.value %}checked{% endif %} style="accent-color:var(--tx-accent);">
+                  {{ field.label }}
+                </label>
+              </div>
+              {% else %}
+              <input type="{{ field.field.widget.input_type }}" name="{{ field.html_name }}"
+                     class="form-control form-control-tx" value="{{ field.value|default:'' }}"
+                     {% if field.field.required %}required{% endif %}
+                     placeholder="{{ field.label }}">
+              {% endif %}
+              {% if field.errors %}
+              <div style="color:var(--tx-coral);font-size:0.75rem;margin-top:3px;">{{ field.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+
+          <!-- Multiple Image Upload -->
+          <div class="col-12">
+            <label class="form-label-tx">Package Images (Multiple)</label>
+            <input type="file" name="images" multiple accept="image/*" class="form-control form-control-tx"
+                   style="padding:0.6rem;">
+            <div style="font-size:0.75rem;color:rgba(255,255,255,0.3);margin-top:4px;">First image will be the primary/thumbnail image</div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-3 mt-4">
+          <button type="submit" class="btn-tx-primary btn" style="padding:0.85rem 2rem;">
+            <i class="bi bi-check2 me-2"></i>{{ action }} Package
+          </button>
+
+          <!-- ✅ Cancel button — role பொறுத்து different URL -->
+          {% if request.user.profile.role == 'agent' %}
+          <a href="{% url 'user_dashboard' %}" class="btn-tx-outline btn" style="padding:0.85rem 1.5rem;">Cancel</a>
+          {% else %}
+          <a href="{% url 'admin_packages' %}" class="btn-tx-outline btn" style="padding:0.85rem 1.5rem;">Cancel</a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

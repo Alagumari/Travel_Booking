@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}My Wishlist - TravelX Pro{% endblock %}
+{% block content %}
+<div style="padding:3rem 0;min-height:80vh;">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 style="font-family:var(--font-display);font-size:2rem;font-weight:900;color:#fff;margin-bottom:0.2rem;">
+          <i class="bi bi-heart-fill me-2" style="color:var(--tx-coral);"></i>My Wishlist
+        </h2>
+        <p style="color:rgba(255,255,255,0.4);margin:0;">{{ wishlist_items.count }} saved package{{ wishlist_items.count|pluralize }}</p>
+      </div>
+      <a href="{% url 'package_list' %}" class="btn-tx-primary btn">
+        <i class="bi bi-compass me-1"></i>Explore More
+      </a>
+    </div>
+
+    {% if wishlist_items %}
+    <div class="row g-4">
+      {% for item in wishlist_items %}
+      <div class="col-md-4 col-lg-3">
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:18px;overflow:hidden;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-6px)'" onmouseout="this.style.transform='translateY(0)'">
+          <div style="position:relative;height:180px;">
+            {% if item.package.images.first %}
+            <img src="{{ item.package.images.first.image.url }}" style="width:100%;height:100%;object-fit:cover;">
+            {% else %}
+            <div style="width:100%;height:180px;background:linear-gradient(135deg,#0d2040,#1a3a6b);display:flex;align-items:center;justify-content:center;font-size:3.5rem;">🌴</div>
+            {% endif %}
+            <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(5,14,29,0.6) 0%,transparent 60%);"></div>
+            <button onclick="toggleWishlist({{ item.package.id }}, this)" class="wishlist-btn active">
+              <i class="bi bi-heart-fill"></i>
+            </button>
+          </div>
+          <div style="padding:1rem;">
+            <div style="font-size:0.75rem;color:var(--tx-teal);margin-bottom:3px;">{{ item.package.destination.name }}</div>
+            <div style="font-weight:700;color:#fff;margin-bottom:0.5rem;font-size:0.92rem;">{{ item.package.title|truncatechars:40 }}</div>
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="price-tag" style="font-size:1.1rem;">₹{{ item.package.discounted_price|floatformat:0 }}</div>
+              <a href="{% url 'package_detail' item.package.slug %}" class="btn-tx-primary btn" style="padding:0.4rem 1rem;font-size:0.8rem;">Book</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:5rem 2rem;color:rgba(255,255,255,0.3);">
+      <div style="font-size:5rem;margin-bottom:1rem;">💔</div>
+      <h4>Your wishlist is empty</h4>
+      <p>Start saving packages you love by clicking the heart icon!</p>
+      <a href="{% url 'package_list' %}" class="btn-tx-primary btn mt-3">Browse Packages</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function toggleWishlist(id, btn) {
+  const res = await fetch(`/tours/wishlist/toggle/${id}/`, {method:'POST',headers:{'X-CSRFToken':'{{ csrf_token }}'}});
+  const data = await res.json();
+  if (data.status === 'removed') btn.closest('[style]').style.opacity = '0.3';
+}
+</script>
+{% endblock %}

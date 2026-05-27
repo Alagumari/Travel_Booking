@@ -1,0 +1,381 @@
+{% extends 'base.html' %}
+{% block title %}Book {{ package.title }} - TravelX Pro{% endblock %}
+
+{% block content %}
+<div style="padding:3rem 0;min-height:80vh;">
+  <div class="container" style="max-width:900px;">
+
+    <div class="breadcrumb-tx mb-4">
+      <a href="{% url 'home' %}">Home</a><span>/</span>
+      <a href="{% url 'package_list' %}">Tours</a><span>/</span>
+      <a href="{% url 'package_detail' package.slug %}">
+        {{ package.title|truncatechars:25 }}
+      </a><span>/</span>
+      <span style="color:rgba(255,255,255,0.6);">Book Now</span>
+    </div>
+
+    <h2 style="font-family:var(--font-display);font-size:2rem;font-weight:900;color:#fff;margin-bottom:0.3rem;">
+      Complete Your Booking 🎒
+    </h2>
+
+    <p style="color:rgba(255,255,255,0.4);margin-bottom:2rem;">
+      You're almost there! Fill in traveler details.
+    </p>
+
+    <div class="row g-4">
+
+      <!-- LEFT -->
+      <div class="col-lg-7">
+
+        <div class="glass-panel p-4">
+
+          <h5 style="color:#fff;font-weight:700;margin-bottom:1.5rem;">
+            <i class="bi bi-person-lines-fill me-2" style="color:var(--tx-teal);"></i>
+            Traveler Details
+          </h5>
+
+          <form method="POST">
+            {% csrf_token %}
+
+            <div class="row g-3">
+
+              <div class="col-6">
+                <label class="form-label-tx">Adults</label>
+
+                <input
+                  type="number"
+                  name="num_adults"
+                  id="numAdults"
+                  class="form-control form-control-tx"
+                  value="1"
+                  min="1"
+                  max="{{ package.available_seats }}"
+                  onchange="calcPrice()"
+                  required
+                >
+              </div>
+
+              <div class="col-6">
+                <label class="form-label-tx">Children</label>
+
+                <input
+                  type="number"
+                  name="num_children"
+                  id="numChildren"
+                  class="form-control form-control-tx"
+                  value="0"
+                  min="0"
+                  onchange="calcPrice()"
+                >
+
+                <div style="font-size:0.72rem;color:rgba(255,255,255,0.3);margin-top:3px;">
+                  Under 12 years
+                </div>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label-tx">Travel Date</label>
+
+                <input
+                  type="date"
+                  name="travel_date"
+                  class="form-control form-control-tx"
+                  min="{{ today }}"
+                  required
+                >
+              </div>
+
+              <div class="col-12">
+                <label class="form-label-tx">Hotel Preference</label>
+
+                <div class="row g-2 mt-1">
+
+                  {% for val, label in form.hotel_type.field.choices %}
+
+                  <div class="col-6">
+
+                    <label
+                      style="
+                      display:block;
+                      background:rgba(255,255,255,0.04);
+                      border:2px solid rgba(255,255,255,0.08);
+                      border-radius:12px;
+                      padding:0.8rem;
+                      cursor:pointer;
+                      transition:all 0.3s;
+                      text-align:center;
+                      "
+                      onclick="selectHotel(this)"
+                    >
+
+                      <input
+                        type="radio"
+                        name="hotel_type"
+                        value="{{ val }}"
+                        style="display:none;"
+                        {% if val == 'standard' %}checked{% endif %}
+                      >
+
+                      <div style="font-size:1.2rem;margin-bottom:3px;">
+
+                        {% if val == 'budget' %}
+                        🏠
+                        {% elif val == 'standard' %}
+                        🏨
+                        {% elif val == 'deluxe' %}
+                        🏩
+                        {% else %}
+                        🏰
+                        {% endif %}
+
+                      </div>
+
+                      <div style="font-size:0.8rem;font-weight:600;color:rgba(255,255,255,0.75);">
+                        {{ label }}
+                      </div>
+
+                    </label>
+
+                  </div>
+
+                  {% endfor %}
+
+                </div>
+              </div>
+
+              <div class="col-12">
+                <hr style="border-color:rgba(255,255,255,0.08);">
+                <h6 style="color:rgba(255,255,255,0.7);font-weight:700;margin-bottom:1rem;">
+                  Contact Information
+                </h6>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label-tx">Contact Name</label>
+
+                <input
+                  type="text"
+                  name="contact_name"
+                  class="form-control form-control-tx"
+                  value="{{ user.get_full_name|default:user.username }}"
+                  required
+                >
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label-tx">Email</label>
+
+                <input
+                  type="email"
+                  name="contact_email"
+                  class="form-control form-control-tx"
+                  value="{{ user.email }}"
+                  required
+                >
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label-tx">Phone</label>
+
+                <input
+                  type="tel"
+                  name="contact_phone"
+                  class="form-control form-control-tx"
+                  placeholder="+91 XXXXX XXXXX"
+                  required
+                >
+              </div>
+
+              <div class="col-12">
+                <label class="form-label-tx">Special Requests</label>
+
+                <textarea
+                  name="special_requests"
+                  class="form-control form-control-tx"
+                  rows="3"
+                  placeholder="Dietary requirements, room preferences..."
+                ></textarea>
+              </div>
+
+            </div>
+
+            <button
+              type="submit"
+              class="btn-tx-primary btn w-100 mt-4"
+              style="padding:1rem;font-size:1rem;"
+            >
+              <i class="bi bi-arrow-right me-2"></i>
+              Proceed to Payment
+            </button>
+
+          </form>
+
+        </div>
+
+      </div>
+
+      <!-- RIGHT -->
+      <div class="col-lg-5">
+
+        <div
+          style="
+          background:rgba(255,255,255,0.04);
+          border:1px solid rgba(255,255,255,0.1);
+          border-radius:20px;
+          padding:1.8rem;
+          position:sticky;
+          top:90px;
+          "
+        >
+
+          <h5 style="color:#fff;font-weight:700;margin-bottom:1.2rem;">
+            <i class="bi bi-receipt me-2" style="color:var(--tx-accent);"></i>
+            Booking Summary
+          </h5>
+
+          {% if package.images.first %}
+          <img
+            src="{{ package.images.first.image.url }}"
+            style="width:100%;height:140px;object-fit:cover;border-radius:14px;margin-bottom:1rem;"
+          >
+          {% endif %}
+
+          <div style="font-weight:700;color:#fff;margin-bottom:0.3rem;">
+            {{ package.title }}
+          </div>
+
+          <div style="font-size:0.82rem;color:rgba(255,255,255,0.45);margin-bottom:1rem;">
+            <i class="bi bi-geo-alt me-1"></i>
+            {{ package.destination.name }},
+            {{ package.destination.country }}
+          </div>
+
+          <!-- DETAILS -->
+
+          <div class="d-flex justify-content-between py-2 border-bottom">
+            <span style="color:rgba(255,255,255,0.5);">
+              <i class="bi bi-clock me-1"></i>Duration
+            </span>
+
+            <span style="color:#fff;">
+              {{ package.duration_days }}D / {{ package.duration_nights }}N
+            </span>
+          </div>
+
+          <div class="d-flex justify-content-between py-2 border-bottom">
+            <span style="color:rgba(255,255,255,0.5);">
+              <i class="bi bi-building me-1"></i>Hotel
+            </span>
+
+            <span style="color:#fff;">
+              {{ package.get_hotel_type_display }}
+            </span>
+          </div>
+
+          <div class="d-flex justify-content-between py-2 border-bottom">
+            <span style="color:rgba(255,255,255,0.5);">
+              <i class="bi bi-airplane me-1"></i>Transport
+            </span>
+
+            <span style="color:#fff;">
+              {{ package.get_transport_type_display }}
+            </span>
+          </div>
+
+          <div class="d-flex justify-content-between py-2 mb-3">
+            <span style="color:rgba(255,255,255,0.5);">
+              <i class="bi bi-people me-1"></i>Seats Left
+            </span>
+
+            <span style="color:var(--tx-green);">
+              {{ package.available_seats }}
+            </span>
+          </div>
+
+          <!-- PRICE -->
+
+          <div
+            style="
+            background:rgba(255,255,255,0.03);
+            border-radius:12px;
+            padding:1rem;
+            "
+          >
+
+            <div class="d-flex justify-content-between mb-2">
+              <span>Adult Price</span>
+              <span>
+                ₹{{ package.discounted_price|floatformat:0 }}
+              </span>
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <span>Total</span>
+
+              <span
+                id="totalPrice"
+                style="
+                font-size:1.4rem;
+                font-weight:900;
+                color:var(--tx-accent);
+                "
+              >
+                ₹{{ package.discounted_price|floatformat:0 }}
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+const adultPrice = {{ package.discounted_price }};
+const childPrice = {{ package.child_price|default:0 }};
+
+function calcPrice() {
+
+  const adults =
+    parseInt(document.getElementById('numAdults').value) || 1;
+
+  const children =
+    parseInt(document.getElementById('numChildren').value) || 0;
+
+  const total =
+    (adults * adultPrice) + (children * childPrice);
+
+  document.getElementById('totalPrice').innerHTML =
+    '₹' + total.toLocaleString('en-IN');
+}
+
+function selectHotel(label) {
+
+  document.querySelectorAll('[name="hotel_type"]').forEach(r => {
+
+    r.parentElement.style.borderColor =
+      'rgba(255,255,255,0.08)';
+
+    r.parentElement.style.background =
+      'rgba(255,255,255,0.04)';
+  });
+
+  label.style.borderColor =
+    'rgba(232,160,32,0.5)';
+
+  label.style.background =
+    'rgba(232,160,32,0.08)';
+
+  label.querySelector('input').checked = true;
+}
+
+</script>
+{% endblock %}

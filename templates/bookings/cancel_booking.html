@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Cancel Booking - TravelX Pro{% endblock %}
+{% block content %}
+<div style="min-height:100vh;display:flex;align-items:center;padding:3rem 0;">
+  <div class="container" style="max-width:560px;">
+    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,107,107,0.2);border-radius:24px;padding:2.5rem;text-align:center;">
+      <div style="font-size:4rem;margin-bottom:1rem;">⚠️</div>
+      <h2 style="font-family:var(--font-display);font-size:1.8rem;font-weight:900;color:#fff;margin-bottom:0.5rem;">Cancel Booking</h2>
+      <p style="color:rgba(255,255,255,0.5);margin-bottom:1.5rem;font-size:0.9rem;">
+        Are you sure you want to cancel booking <strong style="color:var(--tx-accent);">{{ booking.booking_id }}</strong>?
+        <br>Refund will be processed in 5-7 business days.
+      </p>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:1rem;margin-bottom:1.5rem;text-align:left;font-size:0.85rem;">
+        <div style="color:#fff;font-weight:600;margin-bottom:0.3rem;">{{ booking.package.title }}</div>
+        <div style="color:rgba(255,255,255,0.5);">Travel: {{ booking.travel_date|date:"d M Y" }} · ₹{{ booking.total_amount|floatformat:0 }}</div>
+      </div>
+      <form method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label-tx" style="text-align:left;display:block;">Reason for cancellation (optional)</label>
+          <textarea name="reason" class="form-control form-control-tx" rows="3" placeholder="Tell us why you're cancelling..."></textarea>
+        </div>
+        <div class="d-flex gap-3 justify-content-center">
+          <button type="submit" class="btn" style="background:rgba(255,107,107,0.15);border:2px solid rgba(255,107,107,0.4);color:var(--tx-coral);border-radius:50px;padding:0.75rem 2rem;font-weight:600;">
+            <i class="bi bi-x-circle me-2"></i>Yes, Cancel
+          </button>
+          <a href="{% url 'user_dashboard' %}" class="btn-tx-outline btn" style="padding:0.75rem 2rem;">Keep Booking</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

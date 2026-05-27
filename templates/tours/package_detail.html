@@ -1,0 +1,650 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block title %}{{ package.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.gallery-main { border-radius: 20px; overflow: hidden; height: 450px; cursor: pointer; }
+.gallery-main img { width: 100%; height: 100%; object-fit: cover; }
+.gallery-thumb { border-radius: 12px; overflow: hidden; height: 100px; cursor: pointer; opacity: 0.7; transition: all 0.3s; border: 2px solid transparent; }
+.gallery-thumb:hover, .gallery-thumb.active { opacity: 1; border-color: var(--tx-accent); }
+.gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+.itinerary-day { display: flex; gap: 1.2rem; margin-bottom: 1.5rem; }
+.itinerary-num {
+  width: 42px; height: 42px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--tx-accent), var(--tx-gold));
+  color: var(--tx-primary); font-weight: 800; font-size: 0.85rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.itinerary-line { width: 2px; background: rgba(255,255,255,0.06); margin: 0 auto; }
+.itinerary-content {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; padding: 1.2rem; flex: 1;
+}
+.incl-item {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 0.88rem; color: rgba(255,255,255,0.7);
+}
+.booking-sidebar {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px; padding: 1.8rem;
+  position: sticky; top: 90px;
+}
+.star-input { display: flex; flex-direction: row-reverse; gap: 4px; }
+.star-input input { display: none; }
+.star-input label {
+  cursor: pointer; font-size: 1.6rem; color: rgba(255,255,255,0.2);
+  transition: color 0.2s;
+}
+.star-input input:checked ~ label,
+.star-input label:hover,
+.star-input label:hover ~ label { color: var(--tx-gold); }
+.review-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px; padding: 1.2rem; margin-bottom: 1rem;
+}
+
+/* ===== TAB BUTTONS ===== */
+.tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: rgba(255,255,255,0.5);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.7rem 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: normal;
+  word-spacing: normal;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: rgba(255,255,255,0.8); }
+.tab-btn.active {
+  color: var(--tx-accent);
+  border-bottom-color: var(--tx-accent);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== HEADER ===== -->
+<div style="padding:3rem 0 1.5rem;background:linear-gradient(180deg,rgba(10,22,40,0.6),rgba(5,14,29,0.9));border-bottom:1px solid rgba(255,255,255,0.06);">
+  <div class="container">
+    <div class="breadcrumb-tx mb-3">
+      <a href="{% url 'home' %}">Home</a><span>/</span>
+      <a href="{% url 'package_list' %}">Tours</a><span>/</span>
+      <span style="color:rgba(255,255,255,0.6);">{{ package.title|truncatechars:30 }}</span>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div>
+        <div class="d-flex gap-2 mb-2 flex-wrap">
+          {% if package.is_featured %}
+          <span class="badge-tx">⭐ Featured</span>
+          {% endif %}
+          {% if package.is_bestseller %}
+          <span class="badge-tx-coral" style="background:rgba(255,107,107,0.2);color:var(--tx-coral);border-color:rgba(255,107,107,0.3);">🔥 Bestseller</span>
+          {% endif %}
+          {% if package.discount_percentage %}
+          <span class="badge-tx-green">{{ package.discount_percentage }}% OFF</span>
+          {% endif %}
+        </div>
+
+        <h1 style="font-family:var(--font-display);font-size:2.2rem;font-weight:900;color:#fff;margin-bottom:0.5rem;">
+          {{ package.title }}
+        </h1>
+
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+          <span style="color:rgba(255,255,255,0.5);display:flex;align-items:center;gap:0.4rem;font-size:0.9rem;">
+            <i class="bi bi-geo-alt-fill" style="color:var(--tx-teal);"></i>
+            {{ package.destination.name }}, {{ package.destination.country }}
+          </span>
+          <div class="d-flex align-items-center gap-1">
+            <div class="stars">
+              {% for i in "12345" %}{% if forloop.counter <= package.avg_rating %}★{% else %}☆{% endif %}{% endfor %}
+            </div>
+            <span style="font-size:0.85rem;color:rgba(255,255,255,0.5);">
+              {{ package.avg_rating }} ({{ package.review_count }} reviews)
+            </span>
+          </div>
+          <span style="font-size:0.85rem;color:rgba(255,255,255,0.5);">
+            <i class="bi bi-eye me-1"></i>{{ package.view_count }} views
+          </span>
+        </div>
+      </div>
+
+      <!-- Share / Wishlist -->
+      <div class="d-flex gap-2">
+        {% if user.is_authenticated %}
+        <button class="btn"
+          style="position:static;width:auto;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:0.5rem 1rem;color:white;"
+          onclick="toggleWishlist({{ package.id }}, this)">
+          <i class="bi bi-heart{% if in_wishlist %}-fill{% endif %} me-1"></i>
+          {% if in_wishlist %}Wishlisted{% else %}Wishlist{% endif %}
+        </button>
+        {% endif %}
+        <button class="btn"
+          style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:0.5rem 1rem;color:white;"
+          onclick="navigator.share ? navigator.share({title:'{{ package.title }}',url:window.location.href}) : navigator.clipboard.writeText(window.location.href)">
+          <i class="bi bi-share me-1"></i>Share
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="container py-4">
+  <div class="row g-4">
+
+    <!-- Left Column -->
+    <div class="col-lg-8">
+
+      <!-- Image Gallery -->
+      {% if images %}
+      <div class="mb-4">
+        <div class="gallery-main mb-2" id="mainImg">
+          <img src="{{ images.first.image.url }}" alt="{{ package.title }}" id="mainImgSrc">
+        </div>
+        <div class="row g-2">
+          {% for img in images %}
+          <div class="col-3">
+            <div class="gallery-thumb {% if forloop.first %}active{% endif %}"
+                 onclick="changeImg('{{ img.image.url }}', this)">
+              <img src="{{ img.image.url }}" alt="">
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div style="height:350px;background:linear-gradient(135deg,#0d2040,#1a3a6b);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:6rem;margin-bottom:1.5rem;">
+        🏔️
+      </div>
+      {% endif %}
+
+      <!-- Quick Info Chips -->
+      <div class="glass-panel p-3 mb-4">
+        <div class="row g-3 text-center">
+          <div class="col-6 col-md-3">
+            <div style="font-size:1.5rem;margin-bottom:4px;">📅</div>
+            <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;">Duration</div>
+            <div style="font-weight:700;color:#fff;font-size:0.95rem;">{{ package.duration_days }}D / {{ package.duration_nights }}N</div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div style="font-size:1.5rem;margin-bottom:4px;">🛫</div>
+            <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;">Transport</div>
+            <div style="font-weight:700;color:#fff;font-size:0.95rem;">{{ package.get_transport_type_display }}</div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div style="font-size:1.5rem;margin-bottom:4px;">🏨</div>
+            <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;">Hotel</div>
+            <div style="font-weight:700;color:#fff;font-size:0.95rem;">{{ package.get_hotel_type_display }}</div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div style="font-size:1.5rem;margin-bottom:4px;">👥</div>
+            <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;">Seats Left</div>
+            <div style="font-weight:700;font-size:0.95rem;
+              color:{% if package.available_seats < 5 %}var(--tx-coral){% else %}var(--tx-green){% endif %};">
+              {{ package.available_seats }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TABS ===== -->
+      <div class="d-flex mb-4 flex-wrap"
+           style="border-bottom:1px solid rgba(255,255,255,0.08);gap:0;">
+        <button class="tab-btn active" onclick="showTab('overview', this)">Overview</button>
+        <button class="tab-btn" onclick="showTab('itinerary', this)">Itinerary</button>
+        <button class="tab-btn" onclick="showTab('inclusions', this)">Inclusions</button>
+        <button class="tab-btn" onclick="showTab('reviews', this)">Reviews</button>
+        <button class="tab-btn" onclick="showTab('map', this)">Map</button>
+      </div>
+
+      <!-- ===== OVERVIEW TAB ===== -->
+      <div id="tab-overview" class="tab-content-panel">
+        <div class="glass-panel p-4 mb-4">
+          <h4 style="color:#fff;font-weight:700;margin-bottom:1rem;">About This Package</h4>
+          <p style="color:rgba(255,255,255,0.65);line-height:1.8;font-size:0.95rem;">
+            {{ package.description }}
+          </p>
+
+          {% if package.get_highlights_list %}
+          <h5 style="color:#fff;font-weight:700;margin:1.5rem 0 1rem;">Highlights</h5>
+          <div class="row g-2">
+            {% for h in package.get_highlights_list %}
+            <div class="col-md-6">
+              <div style="display:flex;align-items:center;gap:0.6rem;background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.15);border-radius:10px;padding:0.6rem 0.8rem;">
+                <i class="bi bi-check-circle-fill" style="color:var(--tx-green);font-size:0.9rem;flex-shrink:0;"></i>
+                <span style="font-size:0.85rem;color:rgba(255,255,255,0.75);">{{ h }}</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- ===== ITINERARY TAB ===== -->
+      <div id="tab-itinerary" class="tab-content-panel" style="display:none;">
+        <div class="glass-panel p-4">
+          <h4 style="color:#fff;font-weight:700;margin-bottom:1.5rem;">Day-by-Day Itinerary</h4>
+          {% for day in itinerary %}
+          <div class="itinerary-day">
+            <div style="display:flex;flex-direction:column;align-items:center;">
+              <div class="itinerary-num">D{{ day.day_number }}</div>
+              {% if not forloop.last %}
+              <div class="itinerary-line" style="height:30px;margin-top:6px;"></div>
+              {% endif %}
+            </div>
+            <div class="itinerary-content">
+              <h5 style="color:#fff;font-weight:700;margin-bottom:0.4rem;font-size:1rem;">{{ day.title }}</h5>
+              <p style="color:rgba(255,255,255,0.6);font-size:0.88rem;margin-bottom:0.6rem;line-height:1.6;">{{ day.description }}</p>
+              <div class="d-flex flex-wrap gap-3">
+                {% if day.accommodation %}
+                <span style="font-size:0.78rem;color:rgba(255,255,255,0.45);">
+                  <i class="bi bi-building me-1" style="color:var(--tx-teal);"></i>{{ day.accommodation }}
+                </span>
+                {% endif %}
+                {% if day.meals %}
+                <span style="font-size:0.78rem;color:rgba(255,255,255,0.45);">
+                  <i class="bi bi-cup-hot me-1" style="color:var(--tx-accent);"></i>{{ day.meals }}
+                </span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <p style="color:rgba(255,255,255,0.4);">Detailed itinerary will be shared upon booking.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- ===== INCLUSIONS TAB ===== -->
+      <div id="tab-inclusions" class="tab-content-panel" style="display:none;">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <div class="glass-panel p-4">
+              <h5 style="color:var(--tx-green);font-weight:700;margin-bottom:1rem;">
+                <i class="bi bi-check-circle-fill me-2"></i>What's Included
+              </h5>
+              {% for item in package.get_inclusions_list %}
+              <div class="incl-item">
+                <i class="bi bi-check2 text-success"></i> {{ item }}
+              </div>
+              {% empty %}
+              <p style="color:rgba(255,255,255,0.4);">Contact us for details.</p>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="glass-panel p-4">
+              <h5 style="color:var(--tx-coral);font-weight:700;margin-bottom:1rem;">
+                <i class="bi bi-x-circle-fill me-2"></i>What's Not Included
+              </h5>
+              {% for item in package.get_exclusions_list %}
+              <div class="incl-item">
+                <i class="bi bi-x text-danger"></i> {{ item }}
+              </div>
+              {% empty %}
+              <p style="color:rgba(255,255,255,0.4);">Contact us for details.</p>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== REVIEWS TAB ===== -->
+      <div id="tab-reviews" class="tab-content-panel" style="display:none;">
+
+        <!-- Rating Overview -->
+        <div class="glass-panel p-4 mb-4">
+          <div class="row align-items-center">
+
+            <!-- Big Rating Number -->
+            <div class="col-md-3 text-center">
+              <div style="font-size:4rem;font-weight:900;color:var(--tx-accent);font-family:var(--font-display);line-height:1;">
+                {{ package.avg_rating }}
+              </div>
+              <div class="stars mb-1">
+                {% for i in "12345" %}{% if forloop.counter <= package.avg_rating %}★{% else %}☆{% endif %}{% endfor %}
+              </div>
+              <div style="font-size:0.82rem;color:rgba(255,255,255,0.4);">
+                {{ package.review_count }} reviews
+              </div>
+            </div>
+
+            <!-- Rating Bars -->
+            <div class="col-md-9">
+              {% for i in rating_list %}
+              {% with count=rating_breakdown|get_item:i %}
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span style="font-size:0.8rem;color:rgba(255,255,255,0.5);width:10px;">{{ i }}</span>
+                <i class="bi bi-star-fill" style="color:var(--tx-gold);font-size:0.7rem;"></i>
+                <div style="flex:1;height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;">
+                  <div style="height:100%;background:var(--tx-gold);
+                    width:{% if package.review_count > 0 %}{% widthratio count package.review_count 100 %}{% else %}0{% endif %}%;"></div>
+                </div>
+                <span style="font-size:0.78rem;color:rgba(255,255,255,0.4);width:25px;">{{ count }}</span>
+              </div>
+              {% endwith %}
+              {% endfor %}
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Write Review -->
+        {% if user.is_authenticated %}
+        <div class="glass-panel p-4 mb-4">
+          <h5 style="color:#fff;font-weight:700;margin-bottom:1rem;">Write a Review</h5>
+          <form method="POST" action="{% url 'add_review' package.slug %}">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label-tx">Your Rating</label>
+              <div class="star-input">
+                <input type="radio" name="rating" id="star5" value="5"><label for="star5">★</label>
+                <input type="radio" name="rating" id="star4" value="4"><label for="star4">★</label>
+                <input type="radio" name="rating" id="star3" value="3"><label for="star3">★</label>
+                <input type="radio" name="rating" id="star2" value="2"><label for="star2">★</label>
+                <input type="radio" name="rating" id="star1" value="1"><label for="star1">★</label>
+              </div>
+            </div>
+            <div class="mb-3">
+              <input type="text" name="title" class="form-control form-control-tx"
+                     placeholder="Review title" required>
+            </div>
+            <div class="mb-3">
+              <textarea name="comment" class="form-control form-control-tx" rows="3"
+                        placeholder="Share your experience..." required></textarea>
+            </div>
+            <button type="submit" class="btn-tx-primary btn">
+              <i class="bi bi-send me-2"></i>Submit Review
+            </button>
+          </form>
+        </div>
+        {% endif %}
+
+        <!-- Review List -->
+        {% for review in reviews %}
+        <div class="review-card">
+          <div class="d-flex justify-content-between mb-2">
+            <div class="d-flex align-items-center gap-2">
+              <div style="width:36px;height:36px;border-radius:50%;
+                background:linear-gradient(135deg,var(--tx-accent),var(--tx-gold));
+                display:flex;align-items:center;justify-content:center;
+                font-weight:700;color:var(--tx-primary);font-size:0.9rem;">
+                {{ review.user.username|first|upper }}
+              </div>
+              <div>
+                <div style="font-weight:600;font-size:0.9rem;color:#fff;">
+                  {{ review.user.get_full_name|default:review.user.username }}
+                </div>
+                <div class="stars" style="font-size:0.75rem;">
+                  {% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}
+                </div>
+              </div>
+            </div>
+            <div style="font-size:0.78rem;color:rgba(255,255,255,0.35);">
+              {{ review.created_at|date:"d M Y" }}
+            </div>
+          </div>
+          <h6 style="color:rgba(255,255,255,0.85);font-weight:600;margin-bottom:0.4rem;">
+            {{ review.title }}
+          </h6>
+          <p style="color:rgba(255,255,255,0.55);font-size:0.88rem;margin:0;line-height:1.6;">
+            {{ review.comment }}
+          </p>
+        </div>
+        {% empty %}
+        <p style="color:rgba(255,255,255,0.3);text-align:center;padding:2rem;">
+          No reviews yet. Be the first to review!
+        </p>
+        {% endfor %}
+
+      </div>
+
+      <!-- ===== MAP TAB ===== -->
+      <div id="tab-map" class="tab-content-panel" style="display:none;">
+        <div class="glass-panel p-4">
+          <h4 style="color:#fff;font-weight:700;margin-bottom:1rem;">
+            <i class="bi bi-geo-alt me-2" style="color:var(--tx-teal);"></i>Destination Location
+          </h4>
+          <div style="border-radius:14px;overflow:hidden;height:400px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.08);">
+            {% if package.destination.latitude and package.destination.longitude %}
+            <iframe
+              width="100%" height="400" style="border:0;"
+              src="https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q={{ package.destination.latitude }},{{ package.destination.longitude }}&zoom=11"
+              allowfullscreen loading="lazy">
+            </iframe>
+            {% else %}
+            <div style="text-align:center;color:rgba(255,255,255,0.3);">
+              <div style="font-size:4rem;margin-bottom:1rem;">🗺️</div>
+              <p>{{ package.destination.name }}, {{ package.destination.country }}</p>
+              <p style="font-size:0.85rem;">Add Google Maps API key and coordinates to show map.</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- End Left Column -->
+
+    <!-- ===== BOOKING SIDEBAR ===== -->
+    <div class="col-lg-4">
+      <div class="booking-sidebar">
+
+        <div class="text-center mb-3">
+          {% if package.discount_percentage %}
+          <div style="text-decoration:line-through;color:rgba(255,255,255,0.35);font-size:1rem;">
+            ₹{{ package.price_per_person|floatformat:0 }} / person
+          </div>
+          <div style="display:inline-block;background:rgba(6,214,160,0.15);color:var(--tx-green);border:1px solid rgba(6,214,160,0.3);border-radius:8px;padding:2px 8px;font-size:0.78rem;font-weight:700;margin-bottom:4px;">
+            Save ₹{{ package.savings|floatformat:0 }}
+          </div>
+          {% endif %}
+          <div class="price-tag" style="font-size:2.2rem;">₹{{ package.discounted_price|floatformat:0 }}</div>
+          <div style="font-size:0.82rem;color:rgba(255,255,255,0.4);">per person (excl. taxes)</div>
+        </div>
+
+        {% if user.is_authenticated %}
+        <form action="{% url 'create_booking' package.slug %}" method="POST" id="quickBookForm">
+          {% csrf_token %}
+          <input type="hidden" name="package_id" value="{{ package.id }}">
+
+          <div class="mb-3">
+            <label class="form-label-tx"><i class="bi bi-calendar3 me-1"></i>Travel Date</label>
+            <input type="date" name="travel_date" class="form-control form-control-tx" required>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label-tx">Adults</label>
+              <input type="number" name="num_adults" class="form-control form-control-tx"
+                     value="1" min="1" max="{{ package.available_seats }}"
+                     id="numAdults" onchange="calcPrice()">
+            </div>
+            <div class="col-6">
+              <label class="form-label-tx">Children</label>
+              <input type="number" name="num_children" class="form-control form-control-tx"
+                     value="0" min="0" id="numChildren" onchange="calcPrice()">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label-tx"><i class="bi bi-building me-1"></i>Hotel Type</label>
+            <select name="hotel_type" class="form-control form-control-tx">
+              <option value="budget">Budget (2★)</option>
+              <option value="standard" selected>Standard (3★)</option>
+              <option value="deluxe">Deluxe (4★)</option>
+              <option value="luxury">Luxury (5★)</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label-tx">Contact Name</label>
+            <input type="text" name="contact_name" class="form-control form-control-tx"
+                   value="{{ user.get_full_name|default:user.username }}" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label-tx">Contact Email</label>
+            <input type="email" name="contact_email" class="form-control form-control-tx"
+                   value="{{ user.email }}" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label-tx">Contact Phone</label>
+            <input type="tel" name="contact_phone" class="form-control form-control-tx"
+                   placeholder="+91 XXXXX XXXXX" required>
+          </div>
+
+          <!-- Price Preview -->
+          <div class="glass-panel p-3 mb-3" style="font-size:0.85rem;">
+            <div class="d-flex justify-content-between mb-1">
+              <span style="color:rgba(255,255,255,0.5);">Adults (1)</span>
+              <span>₹{{ package.discounted_price|floatformat:0 }}</span>
+            </div>
+            <div class="d-flex justify-content-between"
+                 style="font-weight:700;color:var(--tx-accent);font-size:1rem;border-top:1px solid rgba(255,255,255,0.08);padding-top:0.5rem;margin-top:0.5rem;">
+              <span>Total</span>
+              <span id="totalPrice">₹{{ package.discounted_price|floatformat:0 }}</span>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-tx-primary btn w-100" style="font-size:1rem;padding:0.9rem;">
+            <i class="bi bi-bag-check me-2"></i>Book Now & Pay
+          </button>
+        </form>
+
+        {% else %}
+        <div style="text-align:center;padding:1rem;">
+          <a href="{% url 'login' %}?next={{ request.path }}"
+             class="btn-tx-primary btn w-100" style="padding:0.9rem;font-size:1rem;">
+            <i class="bi bi-person me-2"></i>Login to Book
+          </a>
+          <p style="font-size:0.82rem;color:rgba(255,255,255,0.35);margin-top:0.8rem;">
+            New here? <a href="{% url 'register' %}" style="color:var(--tx-accent);">Create account</a>
+          </p>
+        </div>
+        {% endif %}
+
+        <div class="mt-3">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-shield-check" style="color:var(--tx-green);"></i>
+            <span style="font-size:0.8rem;color:rgba(255,255,255,0.45);">100% Secure Payment</span>
+          </div>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-arrow-counterclockwise" style="color:var(--tx-teal);"></i>
+            <span style="font-size:0.8rem;color:rgba(255,255,255,0.45);">Free cancellation (48h before)</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-headset" style="color:var(--tx-accent);"></i>
+            <span style="font-size:0.8rem;color:rgba(255,255,255,0.45);">24/7 Customer Support</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <!-- End Sidebar -->
+
+  </div>
+  <!-- End Row -->
+
+  <!-- ===== RELATED PACKAGES ===== -->
+  {% if related_packages %}
+  <div class="mt-5">
+    <h3 class="section-title mb-4">You May Also <span class="highlight">Like</span></h3>
+    <div class="row g-4">
+      {% for pkg in related_packages %}
+      <div class="col-md-3">
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;transition:all 0.3s;"
+             onmouseover="this.style.transform='translateY(-5px)'"
+             onmouseout="this.style.transform='translateY(0)'">
+          <div style="height:160px;overflow:hidden;">
+            {% if pkg.images.first %}
+            <img src="{{ pkg.images.first.image.url }}" style="width:100%;height:100%;object-fit:cover;">
+            {% else %}
+            <div style="width:100%;height:160px;background:linear-gradient(135deg,#0d2040,#1a3a6b);display:flex;align-items:center;justify-content:center;font-size:3rem;">🌴</div>
+            {% endif %}
+          </div>
+          <div style="padding:1rem;">
+            <div style="font-size:0.75rem;color:var(--tx-teal);">{{ pkg.destination.name }}</div>
+            <div style="font-weight:700;color:#fff;font-size:0.9rem;margin:4px 0;">{{ pkg.title|truncatechars:35 }}</div>
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="price-tag" style="font-size:1rem;">₹{{ pkg.discounted_price|floatformat:0 }}</div>
+              <a href="{% url 'package_detail' pkg.slug %}" class="btn-tx-teal btn"
+                 style="padding:0.3rem 0.8rem;font-size:0.78rem;">View</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ===== TAB SWITCHING =====
+function showTab(tabId, el) {
+  document.querySelectorAll('.tab-content-panel').forEach(p => {
+    p.style.display = 'none';
+  });
+  document.getElementById('tab-' + tabId).style.display = 'block';
+
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.style.color = 'rgba(255,255,255,0.5)';
+    b.style.borderBottomColor = 'transparent';
+  });
+  el.style.color = 'var(--tx-accent)';
+  el.style.borderBottomColor = 'var(--tx-accent)';
+}
+
+// ===== IMAGE GALLERY =====
+function changeImg(url, thumb) {
+  document.getElementById('mainImgSrc').src = url;
+  document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+  thumb.classList.add('active');
+}
+
+// ===== PRICE CALCULATOR =====
+function calcPrice() {
+  const adults = parseInt(document.getElementById('numAdults').value) || 1;
+  const children = parseInt(document.getElementById('numChildren').value) || 0;
+  const adultPrice = {{ package.discounted_price }};
+  const childPrice = {{ package.child_price|default:0 }} || adultPrice * 0.7;
+  const total = (adults * adultPrice) + (children * childPrice);
+  document.getElementById('totalPrice').textContent = '₹' + Math.round(total).toLocaleString('en-IN');
+}
+
+// ===== WISHLIST TOGGLE =====
+async function toggleWishlist(packageId, btn) {
+  try {
+    const res = await fetch(`/tours/wishlist/toggle/${packageId}/`, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+    });
+    const data = await res.json();
+    btn.innerHTML = `<i class="bi bi-heart${data.status === 'added' ? '-fill' : ''} me-1"></i>${data.status === 'added' ? 'Wishlisted' : 'Wishlist'}`;
+  } catch(e) {
+    console.error('Wishlist error:', e);
+  }
+}
+</script>
+{% endblock %}

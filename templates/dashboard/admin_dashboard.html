@@ -1,0 +1,336 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard - TravelX Pro{% endblock %}
+
+{% block extra_css %}
+<style>
+.admin-layout { display:flex;min-height:calc(100vh - 76px); }
+.admin-sidebar {
+  width:240px;flex-shrink:0;
+  background:rgba(5,14,29,0.98);
+  border-right:1px solid rgba(255,255,255,0.06);
+  padding:1.5rem 0.8rem;
+  position:sticky;top:76px;height:calc(100vh - 76px);overflow-y:auto;
+}
+.admin-nav-link {
+  display:flex;align-items:center;gap:0.7rem;padding:0.65rem 0.9rem;
+  border-radius:10px;color:rgba(255,255,255,0.5);
+  font-size:0.86rem;font-weight:500;text-decoration:none;
+  transition:all 0.3s;margin-bottom:3px;
+}
+.admin-nav-link:hover, .admin-nav-link.active {
+  background:rgba(232,160,32,0.1);color:var(--tx-gold);
+}
+.admin-nav-link i { width:18px;text-align:center; }
+.admin-section-title {
+  font-size:0.68rem;color:rgba(255,255,255,0.2);
+  text-transform:uppercase;letter-spacing:1.5px;
+  padding:0.5rem 0.9rem;margin-top:0.8rem;
+}
+.admin-content { flex:1;padding:2rem;overflow-y:auto; }
+.metric-card {
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
+  border-radius:18px;padding:1.4rem 1.6rem;
+  transition:all 0.3s;position:relative;overflow:hidden;
+}
+.metric-card::before {
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+}
+.metric-card.blue::before { background:linear-gradient(90deg,var(--tx-teal),#0077b6); }
+.metric-card.gold::before { background:linear-gradient(90deg,var(--tx-accent),var(--tx-gold)); }
+.metric-card.green::before { background:linear-gradient(90deg,var(--tx-green),#00a86b); }
+.metric-card.purple::before { background:linear-gradient(90deg,var(--tx-purple),#9c27b0); }
+.metric-num {
+  font-family:var(--font-display);font-size:2.2rem;font-weight:900;color:#fff;line-height:1;
+}
+.chart-container {
+  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);
+  border-radius:18px;padding:1.5rem;
+}
+.data-table {
+  width:100%;border-collapse:collapse;
+}
+.data-table th {
+  background:rgba(255,255,255,0.04);
+  color:rgba(255,255,255,0.5);font-size:0.75rem;
+  text-transform:uppercase;letter-spacing:1px;
+  padding:0.8rem 1rem;font-weight:600;text-align:left;
+}
+.data-table td {
+  padding:0.9rem 1rem;border-bottom:1px solid rgba(255,255,255,0.05);
+  color:rgba(255,255,255,0.75);font-size:0.88rem;vertical-align:middle;
+}
+.data-table tr:hover td { background:rgba(255,255,255,0.02); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+  <!-- Admin Sidebar -->
+  <aside class="admin-sidebar">
+    <div style="padding:0.5rem 0.9rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:0.8rem;">
+      <div style="font-weight:800;color:var(--tx-accent);font-size:0.9rem;">⚡ Admin Panel</div>
+      <div style="font-size:0.75rem;color:rgba(255,255,255,0.3);">TravelX Pro</div>
+    </div>
+
+    <div class="admin-section-title">Overview</div>
+    <a href="{% url 'admin_dashboard' %}" class="admin-nav-link active">
+      <i class="bi bi-grid"></i> Dashboard
+    </a>
+
+    <div class="admin-section-title">Management</div>
+    <a href="{% url 'admin_packages' %}" class="admin-nav-link">
+      <i class="bi bi-map"></i> Packages
+    </a>
+    <a href="{% url 'admin_bookings' %}" class="admin-nav-link">
+      <i class="bi bi-ticket-perforated"></i> Bookings
+    </a>
+    <a href="{% url 'admin_users' %}" class="admin-nav-link">
+      <i class="bi bi-people"></i> Users
+    </a>
+
+    <div class="admin-section-title">Config</div>
+    <a href="/admin/" class="admin-nav-link">
+      <i class="bi bi-gear"></i> Django Admin
+    </a>
+    <a href="{% url 'home' %}" class="admin-nav-link">
+      <i class="bi bi-house"></i> View Site
+    </a>
+    <a href="{% url 'logout' %}" class="admin-nav-link" style="color:var(--tx-coral)!important;">
+      <i class="bi bi-box-arrow-right"></i> Logout
+    </a>
+  </aside>
+
+  <!-- Admin Content -->
+  <div class="admin-content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 style="font-family:var(--font-display);font-size:1.7rem;font-weight:900;color:#fff;margin:0;">
+          Admin Dashboard
+        </h2>
+        <p style="color:rgba(255,255,255,0.35);font-size:0.85rem;margin:0;">Welcome back, {{ user.username }}</p>
+      </div>
+      <a href="{% url 'admin_add_package' %}" class="btn-tx-primary btn">
+        <i class="bi bi-plus-lg me-1"></i>Add Package
+      </a>
+    </div>
+
+    <!-- Metric Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-xl-3">
+        <div class="metric-card blue">
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.4rem;">Total Users</div>
+          <div class="metric-num" style="color:var(--tx-teal);">{{ total_users }}</div>
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.3);margin-top:0.4rem;">
+            <i class="bi bi-arrow-up text-success"></i> +{{ new_users_this_month }} this month
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="metric-card gold">
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.4rem;">Total Bookings</div>
+          <div class="metric-num" style="color:var(--tx-accent);">{{ total_bookings }}</div>
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.3);margin-top:0.4rem;">
+            <i class="bi bi-ticket-perforated"></i> All time
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="metric-card green">
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.4rem;">Total Revenue</div>
+          <div class="metric-num" style="color:var(--tx-green);font-size:1.6rem;">₹{{ total_revenue|floatformat:0 }}</div>
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.3);margin-top:0.4rem;">
+            <i class="bi bi-cash-stack"></i> Payments received
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-xl-3">
+        <div class="metric-card purple">
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.4rem;">Active Tours</div>
+          <div class="metric-num" style="color:#ce93d8;">{{ active_tours }}</div>
+          <div style="font-size:0.78rem;color:rgba(255,255,255,0.3);margin-top:0.4rem;">
+            <i class="bi bi-map"></i> Live packages
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-8">
+        <div class="chart-container">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 style="color:#fff;font-weight:700;margin:0;">Revenue Overview (Last 6 Months)</h6>
+            <span class="badge-tx-teal" style="font-size:0.72rem;">Monthly</span>
+          </div>
+          <canvas id="revenueChart" height="120"></canvas>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="chart-container">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 style="color:#fff;font-weight:700;margin:0;">Booking Status</h6>
+          </div>
+          <canvas id="statusChart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Row -->
+    <div class="row g-4">
+      <!-- Top Packages -->
+      <div class="col-lg-6">
+        <div class="chart-container">
+          <h6 style="color:#fff;font-weight:700;margin-bottom:1rem;">
+            <i class="bi bi-trophy me-2" style="color:var(--tx-accent);"></i>Top Packages
+          </h6>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Package</th>
+                <th>Bookings</th>
+                <th>Rating</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for pkg in top_packages %}
+              <tr>
+                <td>
+                  <div style="font-weight:600;color:#fff;font-size:0.85rem;">{{ pkg.title|truncatechars:30 }}</div>
+                  <div style="font-size:0.75rem;color:rgba(255,255,255,0.35);">{{ pkg.destination.name }}</div>
+                </td>
+                <td><span class="badge-tx-teal" style="font-size:0.72rem;">{{ pkg.booking_count }}</span></td>
+                <td>
+                  <span class="stars" style="font-size:0.75rem;">{{ pkg.avg_rating }}★</span>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" style="text-align:center;color:rgba(255,255,255,0.3);">No packages yet</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recent Bookings -->
+      <div class="col-lg-6">
+        <div class="chart-container">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 style="color:#fff;font-weight:700;margin:0;">
+              <i class="bi bi-clock-history me-2" style="color:var(--tx-teal);"></i>Recent Bookings
+            </h6>
+            <a href="{% url 'admin_bookings' %}" style="font-size:0.8rem;color:var(--tx-accent);">View All →</a>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>ID</th><th>User</th><th>Amount</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              {% for b in recent_bookings %}
+              <tr>
+                <td style="font-size:0.78rem;color:var(--tx-accent);">{{ b.booking_id }}</td>
+                <td style="font-size:0.82rem;">{{ b.user.username }}</td>
+                <td style="font-weight:600;color:var(--tx-green);">₹{{ b.total_amount|floatformat:0 }}</td>
+                <td>
+                  <span style="font-size:0.7rem;padding:2px 8px;border-radius:10px;
+                    background:{% if b.status == 'confirmed' %}rgba(6,214,160,0.15){% elif b.status == 'pending' %}rgba(245,200,66,0.15){% else %}rgba(255,107,107,0.15){% endif %};
+                    color:{% if b.status == 'confirmed' %}var(--tx-green){% elif b.status == 'pending' %}var(--tx-gold){% else %}var(--tx-coral){% endif %};">
+                    {{ b.status|capfirst }}
+                  </span>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,0.3);">No bookings yet</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+Chart.defaults.color = 'rgba(255,255,255,0.5)';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+
+// Revenue Line Chart
+const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+const gradient = revenueCtx.createLinearGradient(0, 0, 0, 300);
+gradient.addColorStop(0, 'rgba(232,160,32,0.3)');
+gradient.addColorStop(1, 'rgba(232,160,32,0)');
+
+new Chart(revenueCtx, {
+  type: 'line',
+  data: {
+    labels: {{ monthly_labels|safe }},
+    datasets: [{
+      label: 'Revenue (₹)',
+      data: {{ monthly_data|safe }},
+      borderColor: 'var(--tx-accent)',
+      backgroundColor: gradient,
+      borderWidth: 2.5,
+      fill: true,
+      tension: 0.4,
+      pointBackgroundColor: 'var(--tx-accent)',
+      pointRadius: 4,
+      pointHoverRadius: 7,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(10,22,40,0.95)',
+        borderColor: 'rgba(232,160,32,0.3)',
+        borderWidth: 1,
+        padding: 12,
+        callbacks: {
+          label: ctx => '₹' + ctx.raw.toLocaleString('en-IN')
+        }
+      }
+    },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' } },
+      y: {
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: { callback: v => '₹' + v.toLocaleString('en-IN') }
+      }
+    }
+  }
+});
+
+// Booking Status Doughnut
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+new Chart(statusCtx, {
+  type: 'doughnut',
+  data: {
+    labels: {{ status_labels|safe }},
+    datasets: [{
+      data: {{ status_counts|safe }},
+      backgroundColor: ['rgba(6,214,160,0.8)','rgba(245,200,66,0.8)','rgba(255,107,107,0.8)','rgba(0,180,216,0.8)','rgba(123,45,139,0.8)'],
+      borderColor: 'transparent',
+      hoverOffset: 8,
+    }]
+  },
+  options: {
+    responsive: true,
+    cutout: '65%',
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { padding: 12, boxWidth: 12, font: { size: 11 } }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(10,22,40,0.95)',
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+      }
+    }
+  }
+});
+</script>
+{% endblock %}
